@@ -1,4 +1,6 @@
 from ply.lex import lex
+import datetime
+import os
 
 # --- 1. Definición de Palabras Reservadas ---
 
@@ -166,7 +168,12 @@ def t_newline(t):
 
 # Manejo de errores léxicos
 def t_error(t):
-    print(f"Error léxico: Caracter ilegal '{t.value[0]}' en la línea {t.lineno}")
+    error_msg = f"Error léxico: Caracter ilegal '{t.value[0]}' en la línea {t.lineno}"
+    print(error_msg)
+
+    if hasattr(t.lexer, 'log_entries'):
+        t.lexer.log_entries.append(error_msg)
+
     t.lexer.skip(1)
 
 # --- 5. Construcción del Lexer ---
@@ -174,34 +181,58 @@ lexer = lex()
 
 # --- 6. Prueba del Lexer ---
 if __name__ == "__main__":
+    
+    git_user = input("Ingresa tu usuario de Git (para el nombre del log): ")
+    now = datetime.datetime.now()
+    timestamp = now.strftime("%d-%m-%Y-%Hh%M")
+    
+    log_directory = "logs_lexicos" 
+    
+    file_name_only = f"lexico-{git_user}-{timestamp}.txt"
+    
+    os.makedirs(log_directory, exist_ok=True)
+    
+    log_filename = os.path.join(log_directory, file_name_only)
 
-    # Código de ejemplo de Kotlin para analizar
-    kotlin_code = """
-    package com.example
+    # Archivo de prueba de Kotlin
+    test_file_path = input("Ingresa el nombre del archivo de prueba (sin .kt): ")
+    test_file_path += ".kt"
 
-    // Esto es un comentario
-    fun main() {
-        val x: Int = 10
-        var y = x + 5
-        val s: String = "Hola Mundo"
+    try:
+        with open(test_file_path, 'r', encoding='utf-8') as f:
+            kotlin_code = f.read()
+    except FileNotFoundError:
+        print(f"Error: El archivo de prueba '{test_file_path}' no se encontró.")
+        print("Por favor, crea ese archivo con tu código de prueba de Kotlin.")
+        exit()
 
-        if (y > 10) {
-            println(s) // Imprime saludo
-        } else {
-            val z = y ?: 0
-        }
-    }
-    """
-
-    # Dar el input al lexer
+    lexer.log_entries = []
+    
     lexer.input(kotlin_code)
-
-    # Iterar sobre los tokens generados
-    print("--- INICIO DE TOKENS ---")
+    
+    print(f"Generando log en: {log_filename}") 
+    
     while True:
         tok = lexer.token()
         if not tok:
-            break  # No hay más tokens
-        #print(f"Tipo: {tok.type:<15} Valor: {tok.value!r:<20} Línea: {tok.lineno}")
-        print(tok)
-    print("--- FIN DE TOKENS ---")
+            break
+        
+        log_entry = str(tok)
+        lexer.log_entries.append(log_entry)
+
+    try:
+        with open(log_filename, 'w', encoding='utf-8') as log_f:
+            log_f.write(f"--- Log de Análisis Léxico ---\n")
+            log_f.write(f"Usuario: {git_user}\n")
+            log_f.write(f"Fecha: {timestamp}\n")
+            log_f.write(f"Archivo: {test_file_path}\n")
+            log_f.write("---------------------------------\n\n")
+            
+            for entry in lexer.log_entries:
+                log_f.write(entry + "\n")
+        
+        print("--- ANÁLISIS COMPLETO ---")
+        print(f"Se han guardado {len(lexer.log_entries)} entradas en {log_filename}")
+
+    except Exception as e:
+        print(f"Error al escribir el archivo de log: {e}")
