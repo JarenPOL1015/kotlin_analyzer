@@ -30,47 +30,59 @@ reserved = {
 # --- 2. Lista de Tokens ---
 
 tokens = [
-             'ID',  # Identificador
-             'NUMBER_INT',  # Entero
-             'STRING',  # String
-             'PLUS',  # +
-             'MINUS',  # -
-             'TIMES',  # *
-             'DIVIDE',  # /
-             'EQUALS',  # = (Asignación)
-             'EQ',  # == (Comparación)
-             'NEQ',  # !=
-             'GT',  # >
-             'LT',  # <
-             'GTE',  # >=
-             'LTE',  # <=
-             'LPAREN',  # (
-             'RPAREN',  # )
-             'LBRACE',  # {
-             'RBRACE',  # }
-             'COLON',  # :
-             'COMMA',  # ,
-             'DOT',  # .
-             'SAFE_CALL',  # ?. (Operador de llamada segura)
-             'ELVIS',  # ?: (Operador Elvis)
-         ] + list(reserved.values())
+    'ADD_ASSIGN',  # +=
+    'SUB_ASSIGN',  # -=
+    'MUL_ASSIGN',  # *=
+    'DIV_ASSIGN',  # /=
+    'EQ',  # == (Comparación)
+    'NEQ',  # !=
+    'GTE',  # >=
+    'LTE',  # <=
+    'SAFE_CALL',  # ?. (Operador de llamada segura)
+    'ELVIS',  # ?: (Operador Elvis)
+    'ID',  # Identificador
+    'NUMBER_INT',  # Entero
+    'STRING',  # String
+    'PLUS',  # +
+    'MINUS',  # -
+    'TIMES',  # *
+    'DIVIDE',  # /
+    'EQUALS',  # = (Asignación)
+    'GT',  # >
+    'LT',  # <
+    'LPAREN',  # (
+    'RPAREN',  # )
+    'LBRACE',  # {
+    'RBRACE',  # }
+    'COLON',  # :
+    'COMMA',  # ,
+    'DOT',  # .
+] + list(reserved.values())
 
 # DAVID SANDOVAL
 
 # --- 3. Definición de Reglas Léxicas ---
 
-# Tokens simples
+# Tokens para operadores con varios símbolos
+t_ADD_ASSIGN = r'\+='
+t_SUB_ASSIGN = r'-='
+t_MUL_ASSIGN = r'\*='
+t_DIV_ASSIGN = r'/='
+t_EQ = r'=='
+t_NEQ = r'!='
+t_GTE = r'>='
+t_LTE = r'<='
+t_SAFE_CALL = r'\?\.'
+t_ELVIS = r'\?:'
+
+# Tokens para operadores simples
 t_PLUS = r'\+'
 t_MINUS = r'-'
 t_TIMES = r'\*'
 t_DIVIDE = r'/'
 t_EQUALS = r'='
-t_EQ = r'=='
-t_NEQ = r'!='
 t_GT = r'>'
 t_LT = r'<'
-t_GTE = r'>='
-t_LTE = r'<='
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_LBRACE = r'\{'
@@ -78,8 +90,6 @@ t_RBRACE = r'\}'
 t_COLON = r':'
 t_COMMA = r','
 t_DOT = r'\.'
-t_SAFE_CALL = r'\?\.'
-t_ELVIS = r'\?:'
 
 # Tokens para identificadores y literales
 # Esto captura "cualquier cosa entre comillas", manejando comillas escapadas.
