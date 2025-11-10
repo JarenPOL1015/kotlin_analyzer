@@ -40,7 +40,7 @@ def run_lexer(kotlin_code):
 
 def run_parser(kotlin_code):
     syntax_errors = []
-    
+
     def custom_error(p):
         msg = f"Error sintáctico: Token '{p.value}' en la línea {p.lineno}" if p else f"Error sintáctico: Fin de archivo inesperado"
         syntax_errors.append(msg)
@@ -70,9 +70,9 @@ def main():
     save_log(log_filename_lex, log_entries_lex)
 
     # Análisis sintáctico
-    log_filename_syn = get_log_filename("sintactico", LOG_SINTACTICO_DIRECTORY)
-    log_entries_syn = run_parser(kotlin_code)
-    save_log(log_filename_syn, log_entries_syn)
+    # log_filename_syn = get_log_filename("sintactico", LOG_SINTACTICO_DIRECTORY)
+    # log_entries_syn = run_parser(kotlin_code)
+    # save_log(log_filename_syn, log_entries_syn)
 
 if __name__ == "__main__":
     main()

@@ -131,4 +131,6 @@ def p_error(p):
         print(f"Error sintáctico: Token '{p.value}' en la línea {p.lineno}")
 
 # --- CONSTRUCCIÓN DEL PARSER ---
-parser = yacc.yacc()
+parser = None
+# (descomentar la siguiente línea al hacer pruebas)
+# parser = yacc.yacc()
