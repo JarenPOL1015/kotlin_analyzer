@@ -3,19 +3,20 @@ import subprocess
 import os
 from sintactico import parser, lexer
 
-LOG_DIRECTORY = "logs"
+LOG_LEXICO_DIRECTORY = os.path.join("logs", "lexico")
+LOG_SINTACTICO_DIRECTORY = os.path.join("logs", "sintactico")
 
 def get_git_user():
     result = subprocess.run(['git', 'config', 'user.name'], capture_output=True, text=True)
     return result.stdout.strip()
 
-def get_log_filename(prefix):
+def get_log_filename(prefix, directory):
     now = datetime.now()
     usuario = get_git_user()
     timestamp = now.strftime("%d-%m-%Y-%Hh%M")
-    os.makedirs(LOG_DIRECTORY, exist_ok=True)
+    os.makedirs(directory, exist_ok=True)
     file_name = f"{prefix}-{usuario}-{timestamp}.txt"
-    return os.path.join(LOG_DIRECTORY, file_name)
+    return os.path.join(directory, file_name)
 
 def read_test_file():
     test_file_path = input("Nombre del archivo de prueba: ")
@@ -56,12 +57,12 @@ def save_log(log_filename, log_entries):
 def main():
     kotlin_code = read_test_file()
     # Análisis léxico
-    log_filename_lex = get_log_filename("lexico")
+    log_filename_lex = get_log_filename("lexico", LOG_LEXICO_DIRECTORY)
     log_entries_lex = run_lexer(kotlin_code)
     save_log(log_filename_lex, log_entries_lex)
 
     # Análisis sintáctico
-    log_filename_syn = get_log_filename("sintactico")
+    log_filename_syn = get_log_filename("sintactico", LOG_SINTACTICO_DIRECTORY)
     log_entries_syn = run_parser(kotlin_code)
     save_log(log_filename_syn, log_entries_syn)
 
