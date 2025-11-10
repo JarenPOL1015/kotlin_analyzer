@@ -1,0 +1,134 @@
+import ply.yacc as yacc
+from lexico import tokens, lexer
+
+# DAVID SANDOVAL
+
+# --- PRECEDENCIA DE OPERADORES ---
+
+# Se define de MENOR a MAYOR precedencia.
+
+precedence = (
+    ('right', 'ELSE'),
+    ('right', 'EQUALS', 'ADD_ASSIGN', 'SUB_ASSIGN', 'MUL_ASSIGN', 'DIV_ASSIGN', 'MOD_ASSIGN'),
+    ('left', 'OR'),
+    ('left', 'AND'),
+    ('left', 'TO'),
+    ('left', 'EQ', 'NEQ'),
+    ('left', 'GT', 'GTE', 'LT', 'LTE'),
+    ('left', 'RANGE'),
+    ('left', 'PLUS', 'MINUS'),
+    ('left', 'TIMES', 'DIVIDE', 'MODULO'),
+    ('right', 'NOT'),
+    ('left', 'INC', 'DEC'),
+    ('left', 'DOT', 'SAFE_CALL'),
+)
+
+# --- DEFINICIÓN DE LA GRAMÁTICA ---
+
+# ----- Regla Inicial -----
+
+def p_program(p):
+    '''
+    program : program statement
+            | statement
+    '''
+    if len(p) == 2:
+        p[0] = ('program', [p[1]])
+    else:
+        p[0] = ('program', p[1][1] + [p[2]])
+
+# ----- Regla para Sentencias -----
+
+def p_statement(p):
+    '''
+    statement   : expression
+                | for_statement
+                | variable_declaration
+                | input_statement
+                | while_statement
+                | class_declaration
+                | print_statement
+                | if_statement
+                | function_declaration
+                | assignment
+    '''
+    p[0] = p[1]
+
+# --- Regla para expresiones ---
+def p_expression(p):
+    '''
+    expression  : expression PLUS expression
+                | expression MINUS expression
+                | expression TIMES expression
+                | expression DIVIDE expression
+                | expression MODULO expression
+                | expression RANGE expression
+                | expression EQ expression
+                | expression NEQ expression
+                | expression GT expression
+                | expression GTE expression
+                | expression LT expression
+                | expression LTE expression
+                | expression AND expression
+                | expression OR expression
+                | NOT expression
+                | LPAREN expression RPAREN
+                | NUMBER_INT
+                | NUMBER_FLOAT
+                | STRING
+                | LITERAL_TRUE
+                | LITERAL_FALSE
+                | ID
+    '''
+    if len(p) == 4 and p[2] != '(':
+        p[0] = ('binop', p[2], p[1], p[3])
+    elif len(p) == 3:
+        p[0] = ('unop', p[1], p[2])
+    elif len(p) == 4:
+        p[0] = p[2]
+    else:
+        p[0] = ('literal', p[1])
+
+# --- Regla para ciclo 'for' ---
+def p_for_statement(p):
+    '''
+    for_statement   : FOR LPAREN ID IN expression RPAREN LBRACE program RBRACE
+    '''
+    p[0] = ('for', p[3], p[5], p[8])
+
+# --- Regla para declaraciones de variables ---
+def p_variable_declaration(p):
+    '''
+    variable_declaration : VAR ID EQUALS expression
+                         | VAL ID EQUALS expression
+    '''
+    if p[1] == 'var':
+        p[0] = ('var_decl', p[2], p[4])
+    else:
+        p[0] = ('val_decl', p[2], p[4])
+
+# BRUNO ROMERO
+
+# --- Regla para 'input' ---
+
+# --- Regla para ciclo 'while' ---
+
+# --- Regla para clases ---
+
+# --- Regla para 'print' ---
+
+# JAREN PAZMIÑO
+
+# --- Regla para 'if' ---
+
+# --- Regla para funciones ---
+
+# --- Regla para asignaciones ---
+
+# --- Manejo de errores ---
+def p_error(p):
+    if p:
+        print(f"Error sintáctico: Token '{p.value}' en la línea {p.lineno}")
+
+# --- CONSTRUCCIÓN DEL PARSER ---
+parser = yacc.yacc()
