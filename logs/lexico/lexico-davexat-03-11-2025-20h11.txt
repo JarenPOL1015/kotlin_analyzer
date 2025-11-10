@@ -1,9 +1,3 @@
---- Log de Análisis Léxico ---
-Usuario: davexat
-Fecha: 03-11-2025-20h11
-Archivo: algoritmo2.kt
----------------------------------
-
 LexToken(FUN,'fun',4,69)
 LexToken(ID,'main',4,73)
 LexToken(LPAREN,'(',4,77)

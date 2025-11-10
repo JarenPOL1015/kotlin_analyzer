@@ -1,9 +1,3 @@
---- Log de Análisis Léxico ---
-Usuario: Brun025-5
-Fecha: 03-11-2025-15h43
-Archivo: algoritmo3.kt
----------------------------------
-
 LexToken(PACKAGE,'package',3,17)
 LexToken(ID,'com',3,25)
 LexToken(DOT,'.',3,28)

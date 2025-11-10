@@ -1,9 +1,3 @@
---- Log de Análisis Léxico ---
-Usuario: JarenPOL1015
-Fecha: 03-11-2025-18h14
-Archivo: algoritmo1.kt
----------------------------------
-
 LexToken(FUN,'fun',4,43)
 LexToken(ID,'main',4,47)
 LexToken(LPAREN,'(',4,51)

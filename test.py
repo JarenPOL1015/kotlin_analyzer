@@ -39,10 +39,18 @@ def run_lexer(kotlin_code):
     return lexer.log_entries
 
 def run_parser(kotlin_code):
-    parser.log_entries = []
-    result = parser.parse(kotlin_code, lexer=lexer)
-    parser.log_entries.append(str(result))
-    return parser.log_entries
+    syntax_errors = []
+    
+    def custom_error(p):
+        msg = f"Error sintáctico: Token '{p.value}' en la línea {p.lineno}" if p else f"Error sintáctico: Fin de archivo inesperado"
+        syntax_errors.append(msg)
+    
+    original_error = getattr(parser, 'errorfunc', None)
+    parser.errorfunc = custom_error
+    parser.parse(kotlin_code, lexer=lexer)
+    parser.errorfunc = original_error
+
+    return syntax_errors
 
 def save_log(log_filename, log_entries):
     """Guarda los tokens en el archivo de log."""
