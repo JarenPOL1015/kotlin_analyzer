@@ -19,6 +19,8 @@ reserved = {
     'interface': 'INTERFACE',
     'package': 'PACKAGE',
     'import': 'IMPORT',
+    'to': 'TO',
+    'in': 'IN',
     # Tipos de datos comunes (aunque en Kotlin son clases,
     # a nivel léxico se pueden tratar como palabras clave)
     'Int': 'TYPE_INT',
@@ -72,6 +74,9 @@ tokens = [
     'AND',  # &&
     'OR',  # ||
     'NOT',  # !
+    'CHAR', #  Caracter
+    'INC',  # ++
+    'DEC',  # --
 ] + list(reserved.values())
 
 # DAVID SANDOVAL
@@ -90,6 +95,8 @@ t_GTE = r'>='
 t_LTE = r'<='
 t_SAFE_CALL = r'\?\.'
 t_ELVIS = r'\?:'
+t_INC = r'\+\+'
+t_DEC = r'--'
 
 # Tokens para operadores simples
 t_PLUS = r'\+'
@@ -118,6 +125,12 @@ t_NOT = r'!'
 def t_STRING(t):
     r'"([^"\\]|\\.)*"'
     t.value = t.value[1:-1]  # Remover las comillas
+    return t
+
+# Token para caracteres
+def t_CHAR(t):
+    r"\'([^'\\]|\\.)\'"
+    t.value = t.value[1:-1] # Remover las comillas
     return t
 
 # Token para decimales
@@ -180,59 +193,59 @@ def t_error(t):
 lexer = lex()
 
 # --- 6. Prueba del Lexer ---
-if __name__ == "__main__":
+# if __name__ == "__main__":
     
-    git_user = input("Ingresa tu usuario de Git (para el nombre del log): ")
-    now = datetime.datetime.now()
-    timestamp = now.strftime("%d-%m-%Y-%Hh%M")
+#     git_user = input("Ingresa tu usuario de Git (para el nombre del log): ")
+#     now = datetime.datetime.now()
+#     timestamp = now.strftime("%d-%m-%Y-%Hh%M")
     
-    log_directory = "logs_lexicos" 
+#     log_directory = "logs_lexicos" 
     
-    file_name_only = f"lexico-{git_user}-{timestamp}.txt"
+#     file_name_only = f"lexico-{git_user}-{timestamp}.txt"
     
-    os.makedirs(log_directory, exist_ok=True)
+#     os.makedirs(log_directory, exist_ok=True)
     
-    log_filename = os.path.join(log_directory, file_name_only)
+#     log_filename = os.path.join(log_directory, file_name_only)
 
-    # Archivo de prueba de Kotlin
-    test_file_path = input("Ingresa el nombre del archivo de prueba (sin .kt): ")
-    test_file_path += ".kt"
+#     # Archivo de prueba de Kotlin
+#     test_file_path = input("Ingresa el nombre del archivo de prueba (sin .kt): ")
+#     test_file_path += ".kt"
 
-    try:
-        with open(test_file_path, 'r', encoding='utf-8') as f:
-            kotlin_code = f.read()
-    except FileNotFoundError:
-        print(f"Error: El archivo de prueba '{test_file_path}' no se encontró.")
-        print("Por favor, crea ese archivo con tu código de prueba de Kotlin.")
-        exit()
+#     try:
+#         with open(test_file_path, 'r', encoding='utf-8') as f:
+#             kotlin_code = f.read()
+#     except FileNotFoundError:
+#         print(f"Error: El archivo de prueba '{test_file_path}' no se encontró.")
+#         print("Por favor, crea ese archivo con tu código de prueba de Kotlin.")
+#         exit()
 
-    lexer.log_entries = []
+#     lexer.log_entries = []
     
-    lexer.input(kotlin_code)
+#     lexer.input(kotlin_code)
     
-    print(f"Generando log en: {log_filename}") 
+#     print(f"Generando log en: {log_filename}") 
     
-    while True:
-        tok = lexer.token()
-        if not tok:
-            break
+#     while True:
+#         tok = lexer.token()
+#         if not tok:
+#             break
         
-        log_entry = str(tok)
-        lexer.log_entries.append(log_entry)
+#         log_entry = str(tok)
+#         lexer.log_entries.append(log_entry)
 
-    try:
-        with open(log_filename, 'w', encoding='utf-8') as log_f:
-            log_f.write(f"--- Log de Análisis Léxico ---\n")
-            log_f.write(f"Usuario: {git_user}\n")
-            log_f.write(f"Fecha: {timestamp}\n")
-            log_f.write(f"Archivo: {test_file_path}\n")
-            log_f.write("---------------------------------\n\n")
+#     try:
+#         with open(log_filename, 'w', encoding='utf-8') as log_f:
+#             log_f.write(f"--- Log de Análisis Léxico ---\n")
+#             log_f.write(f"Usuario: {git_user}\n")
+#             log_f.write(f"Fecha: {timestamp}\n")
+#             log_f.write(f"Archivo: {test_file_path}\n")
+#             log_f.write("---------------------------------\n\n")
             
-            for entry in lexer.log_entries:
-                log_f.write(entry + "\n")
+#             for entry in lexer.log_entries:
+#                 log_f.write(entry + "\n")
         
-        print("--- ANÁLISIS COMPLETO ---")
-        print(f"Se han guardado {len(lexer.log_entries)} entradas en {log_filename}")
+#         print("--- ANÁLISIS COMPLETO ---")
+#         print(f"Se han guardado {len(lexer.log_entries)} entradas en {log_filename}")
 
-    except Exception as e:
-        print(f"Error al escribir el archivo de log: {e}")
+#     except Exception as e:
+#         print(f"Error al escribir el archivo de log: {e}")
