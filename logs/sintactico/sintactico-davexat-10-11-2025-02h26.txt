@@ -1,0 +1,16 @@
+Error sintáctico: Token 'class' en la línea 4
+Error sintáctico: Token 'fun' en la línea 7
+Error sintáctico: Token ':' en la línea 7
+Error sintáctico: Token 'if' en la línea 11
+Error sintáctico: Token '{' en la línea 11
+Error sintáctico: Token 'println' en la línea 13
+Error sintáctico: Token '}' en la línea 14
+Error sintáctico: Token ')' en la línea 22
+Error sintáctico: Token 'readLine' en la línea 25
+Error sintáctico: Token '{' en la línea 28
+Error sintáctico: Token '.' en la línea 30
+Error sintáctico: Token '}' en la línea 32
+Error sintáctico: Token 'while' en la línea 36
+Error sintáctico: Token '{' en la línea 36
+Error sintáctico: Token '=' en la línea 38
+Error sintáctico: Token '}' en la línea 39
