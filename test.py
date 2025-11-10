@@ -64,15 +64,16 @@ def save_log(log_filename, log_entries):
 
 def main():
     kotlin_code = read_test_file()
-    # Análisis léxico
-    log_filename_lex = get_log_filename("lexico", LOG_LEXICO_DIRECTORY)
-    log_entries_lex = run_lexer(kotlin_code)
-    save_log(log_filename_lex, log_entries_lex)
-
-    # Análisis sintáctico
-    # log_filename_syn = get_log_filename("sintactico", LOG_SINTACTICO_DIRECTORY)
-    # log_entries_syn = run_parser(kotlin_code)
-    # save_log(log_filename_syn, log_entries_syn)
-
+    choice = int(input("Ingrese análisis:\n1. Analizador Léxico\n2. Analizador Sintáctico\n3. Todos\n>> "))
+    if choice == 1 or choice == 3:
+        # Análisis léxico
+        log_filename_lex = get_log_filename("lexico", LOG_LEXICO_DIRECTORY)
+        log_entries_lex = run_lexer(kotlin_code)
+        save_log(log_filename_lex, log_entries_lex)
+    elif choice == 2 or choice == 3:
+        # Análisis sintáctico
+        log_filename_syn = get_log_filename("sintactico", LOG_SINTACTICO_DIRECTORY)
+        log_entries_syn = run_parser(kotlin_code)
+        save_log(log_filename_syn, log_entries_syn)
 if __name__ == "__main__":
     main()

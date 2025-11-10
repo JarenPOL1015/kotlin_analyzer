@@ -44,13 +44,6 @@ def p_statement(p):
     statement   : expression
                 | for_statement
                 | variable_declaration
-                | input_statement
-                | while_statement
-                | class_declaration
-                | print_statement
-                | if_statement
-                | function_declaration
-                | assignment
     '''
     p[0] = p[1]
 
@@ -131,6 +124,4 @@ def p_error(p):
         print(f"Error sintáctico: Token '{p.value}' en la línea {p.lineno}")
 
 # --- CONSTRUCCIÓN DEL PARSER ---
-parser = None
-# (descomentar la siguiente línea al hacer pruebas)
-# parser = yacc.yacc()
+parser = yacc.yacc()
