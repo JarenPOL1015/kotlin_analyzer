@@ -30,7 +30,7 @@ reserved = {
     'Int': 'TYPE_INT',
     'String': 'TYPE_STRING',
     'Boolean': 'TYPE_BOOLEAN',
-    'Double': 'TYPE_DOUBLE',
+    'Float': 'TYPE_FLOAT',
     'Any': 'TYPE_ANY',
     'Unit': 'TYPE_UNIT',
     #Booleanos
@@ -156,24 +156,24 @@ t_DOT = r'\.'
 
 # Tokens para identificadores y literales
 
-# Token para enteros
-# Int con underscores y sufijo L
-def t_NUMBER_INT(t):
-    r'\d+(_?\d)*[lL]?'
-    s = t.value.replace('_','')
-    if s[-1] in 'lL':
-        s = s[:-1]
-    t.value = int(s)
-    return t
-
 # Token para decimales
 # Float con posibles underscores y sufijo f/F
 def t_NUMBER_FLOAT(t):
-    r'\d+(_?\d)*\.\d+(_?\d)*([eE][+-]?\d+(_?\d)*)?[fF]?'
+    r'-?\d+(_?\d)*\.\d+(_?\d)*([eE][+-]?\d+(_?\d)*)?[fF]?'
     s = t.value.replace('_','')
     if s[-1] in 'fF':
         s = s[:-1]
     t.value = float(s)
+    return t
+
+# Token para enteros
+# Int con underscores y sufijo L
+def t_NUMBER_INT(t):
+    r'-?\d+(_?\d)*[lL]?'
+    s = t.value.replace('_','')
+    if s[-1] in 'lL':
+        s = s[:-1]
+    t.value = int(s)
     return t
 
 # Token para números hexadecimales
