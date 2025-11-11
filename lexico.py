@@ -40,8 +40,6 @@ reserved = {
     'List': 'TYPE_LIST',
     'Set': 'TYPE_SET',
     'Map': 'TYPE_MAP',
-    #Funciones de estructuras de datos
-    'mapOf': 'MAP_OF',
 }
 
 # --- 2. Lista de Tokens ---
