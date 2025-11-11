@@ -1,0 +1,4 @@
+Error sintáctico: Token '.' en la línea 30
+Error sintáctico: Token '.' en la línea 31
+Error sintáctico: Token '}' en la línea 32
+Error sintáctico: Token '}' en la línea 40
