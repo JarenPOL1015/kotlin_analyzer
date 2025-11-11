@@ -46,12 +46,9 @@ def p_statement(p):
                 | variable_declaration
                 | if_statement
                 | function_declaration
-                | assignment
                 | return_statement
-                | input_statement
                 | while_statement
                 | class_declaration
-                | print_statement
     '''
     p[0] = p[1]
 
@@ -82,15 +79,19 @@ def p_expression(p):
                 | LITERAL_FALSE
                 | ID
                 | function_call
+                | assignment_expression
     '''
     if len(p) == 4 and p[2] != '(':
         p[0] = ('binop', p[2], p[1], p[3])
     elif len(p) == 3:
         p[0] = ('unop', p[1], p[2])
-    elif len(p) == 4:
-        p[0] = p[2]
-    else:
-        p[0] = ('expression', p[1])
+    elif len(p) == 4 and p[1] == '(':
+        p[0] = p[2]  # LPAREN expression RPAREN -> devuelve solo la expresión
+    elif len(p) == 2:
+        if isinstance(p[1], tuple):
+            p[0] = p[1] 
+        else:
+            p[0] = ('literal', p[1])
 
 # --- Regla para ciclo 'for' ---
 def p_for_statement(p):
@@ -116,27 +117,23 @@ def p_variable_declaration(p):
                          | VAL ID EQUALS expression
                          | VAR ID COLON type EQUALS expression
                          | VAL ID COLON type EQUALS expression
+                         | VAR ID COLON type
+                         | VAL ID COLON type
     '''
-    if len(p) == 5:
-        p[0] = ('var_decl', p[1], p[2], None, p[4])
+    if len(p) == 5 and p[3] == ':':
+        # Declaración sin inicialización
+        if p[1] == 'var':
+            p[0] = ('var_decl_no_init', p[2], p[4])
+        else:
+            p[0] = ('val_decl_no_init', p[2], p[4])
     else:
-        p[0] = ('var_decl', p[1], p[2], p[4], p[6])
+        # Declaración con inicialización
+        if p[1] == 'var':
+            p[0] = ('var_decl', p[2], p[4] if len(p) == 5 else p[6])
+        else:
+            p[0] = ('val_decl', p[2], p[4] if len(p) == 5 else p[6])
 
 # BRUNO ROMERO
-
-# --- Regla para 'input' ---
-def p_input_statement(p):
-    '''
-    input_statement : ID EQUALS READLINE LPAREN RPAREN
-                    | ID EQUALS READLN LPAREN RPAREN
-                    | ID EQUALS READLN_OR_NULL LPAREN RPAREN
-    '''
-    if p[3] == 'readLine':
-        p[0] = ('input_readline', p[1])
-    elif p[3] == 'readln':
-        p[0] = ('input_readln', p[1])
-    else:
-        p[0] = ('input_readln_or_null', p[1])
 
 # --- Regla para ciclo 'while' ---
 def p_while_statement(p):
@@ -151,17 +148,6 @@ def p_class_declaration(p):
     class_declaration : CLASS ID LBRACE program RBRACE
     '''
     p[0] = ('class', p[2], p[4])
-
-# --- Regla para 'print' ---
-def p_print_statement(p):
-    '''
-    print_statement : PRINT LPAREN expression RPAREN
-                    | PRINTLN LPAREN expression RPAREN
-    '''
-    if p[1] == 'print':
-        p[0] = ('print', p[3])
-    else:
-        p[0] = ('println', p[3])
 
 # JAREN PAZMIÑO
 
@@ -211,18 +197,25 @@ def p_param(p):
 def p_function_call(p):
     '''
     function_call : ID LPAREN args RPAREN
+                  | READLINE LPAREN args RPAREN
+                  | READLN LPAREN args RPAREN
+                  | READLN_OR_NULL LPAREN args RPAREN
+                  | PRINT LPAREN args RPAREN
+                  | PRINTLN LPAREN args RPAREN
     '''
     p[0] = ('function_call', p[1], p[3])
 
 def p_args(p):
     '''
-    args : arg COMMA args
+    args : args COMMA arg
          | arg
     '''
     if len(p) == 4:
-        p[0] = [p[1]] + p[3]
-    else:
+        p[0] = p[1] + [p[3]]
+    elif len(p) == 2 and p[1] is not None:
         p[0] = [p[1]]
+    else:
+        p[0] = []
 
 def p_arg(p):
     '''
@@ -232,9 +225,9 @@ def p_arg(p):
     p[0] = p[1]
 
 # --- Regla para asignaciones ---
-def p_assignment(p):
+def p_assignment_expression(p):
     '''
-    assignment  : ID EQUALS expression
+    assignment_expression : ID EQUALS expression
     '''
     p[0] = ('assign', p[1], p[3])
 
@@ -285,16 +278,17 @@ def p_empty(p):
 # --- CONSTRUCCIÓN DEL PARSER ---
 parser = yacc.yacc()
 
-while True:
-    try:
-        s = input('kt-parser > ')
-    except EOFError:
-        print("\nSaliendo...")
-        break
+if __name__ == "__main__":
+    while True:
+        try:
+            s = input('kt-parser > ')
+        except EOFError:
+            print("\nSaliendo...")
+            break
 
-    if not s: continue
-    lexer.input(s)
-    result = parser.parse(lexer=lexer)
+        if not s: continue
+        lexer.input(s)
+        result = parser.parse(lexer=lexer)
 
-    if result:
-        print(result)
+        if result:
+            print(result)

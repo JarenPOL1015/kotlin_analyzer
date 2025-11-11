@@ -1,0 +1,7 @@
+Error sintáctico: Token 'n' en la línea 7
+Error sintáctico: Token '}' en la línea 16
+Error sintáctico: Token 'readLine' en la línea 25
+Error sintáctico: Token '.' en la línea 30
+Error sintáctico: Token '.' en la línea 31
+Error sintáctico: Token '}' en la línea 32
+Error sintáctico: Token '}' en la línea 40
