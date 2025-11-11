@@ -226,8 +226,20 @@ def p_type(p):
          | TYPE_LIST
          | TYPE_SET
          | TYPE_MAP
+         | generic_type
     '''
     p[0] = p[1]
+
+def p_generic_type(p):
+    '''
+    generic_type : TYPE_LIST LT type GT
+                 | TYPE_SET LT type GT
+                 | TYPE_MAP LT type COMMA type GT
+    '''
+    if len(p) == 5:  # Caso: List<T> o Set<T>
+        p[0] = ('generic_type', p[1], [p[3]])
+    else:  # Caso: Map<K, V>
+        p[0] = ('generic_type', p[1], [p[3], p[5]])
 
 # --- Manejo de errores ---
 def p_error(p):
