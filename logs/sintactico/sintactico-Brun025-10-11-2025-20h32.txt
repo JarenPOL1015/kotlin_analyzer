@@ -1,0 +1,12 @@
+Error sintáctico: Token 'package' en la línea 3
+Error sintáctico: Token 'precio' en la línea 7
+Error sintáctico: Token '.' en la línea 8
+Error sintáctico: Token '+=' en la línea 13
+Error sintáctico: Token '.' en la línea 13
+Error sintáctico: Token ':' en la línea 16
+Error sintáctico: Token 'to' en la línea 16
+Error sintáctico: Token '{' en la línea 19
+Error sintáctico: Token '*=' en la línea 22
+Error sintáctico: Token ',' en la línea 27
+Error sintáctico: Token '$' en la línea 31
+Error sintáctico: Token '}' en la línea 33
