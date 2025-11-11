@@ -1,0 +1,3 @@
+Error sintáctico: Token ':' en la línea 5
+Error sintáctico: Token ':' en la línea 7
+Error sintáctico: Token '?:' en la línea 12

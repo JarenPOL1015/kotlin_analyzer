@@ -44,6 +44,10 @@ def p_statement(p):
     statement   : expression
                 | for_statement
                 | variable_declaration
+                | if_statement
+                | function_declaration
+                | return_statement
+                | assignment_statement
     '''
     p[0] = p[1]
 
@@ -94,6 +98,8 @@ def p_variable_declaration(p):
     '''
     variable_declaration : VAR ID EQUALS expression
                          | VAL ID EQUALS expression
+                         | VAL ID COLON type EQUALS expression
+                         | VAR ID COLON type EQUALS expression
     '''
     if p[1] == 'var':
         p[0] = ('var_decl', p[2], p[4])
@@ -113,10 +119,30 @@ def p_variable_declaration(p):
 # JAREN PAZMIÑO
 
 # --- Regla para 'if' ---
+def p_if_statement(p):
+    '''
+    if_statement    : IF LPAREN expression RPAREN LBRACE program RBRACE ELSE LBRACE program RBRACE
+                    | IF LPAREN expression RPAREN LBRACE program RBRACE
+    '''
+    if len(p) == 12:
+        p[0] = ('if_else', p[3], p[6], p[10])
+    else:
+        p[0] = ('if', p[3], p[6])
+
 
 # --- Regla para funciones ---
+def p_function_declaration(p):
+    '''
+    function_declaration : FUN ID LPAREN RPAREN LBRACE program RBRACE
+    '''
+    p[0] = ('function', p[2], p[6])
 
 # --- Regla para asignaciones ---
+def p_assignment(p):
+    '''
+    assignment  : ID EQUALS expression
+    '''
+    p[0] = ('assign', p[1], p[3])
 
 # --- Manejo de errores ---
 def p_error(p):
