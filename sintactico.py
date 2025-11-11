@@ -181,18 +181,13 @@ def p_if_statement(p):
 def p_function_declaration(p):
     '''
     function_declaration : FUN ID LPAREN params RPAREN LBRACE program RBRACE
-                         | FUN ID LPAREN RPAREN LBRACE program RBRACE
                          | FUN ID LPAREN params RPAREN COLON type LBRACE program RBRACE
-                         | FUN ID LPAREN RPAREN LBRACE COLON type program RBRACE
     '''
     if len(p) == 9:
         p[0] = ('function_decl', p[2], p[4], None, p[7])
-    elif len(p) == 10:
-        p[0] = ('function_decl', p[2], [], None, p[7])
-    elif len(p) == 11:
-        p[0] = ('function_decl', p[2], p[4], p[8], p[10])
     else:
-        p[0] = ('function_decl', p[2], [], p[8], p[10])
+        p[0] = ('function_decl', p[2], p[4], p[7], p[9])
+    
 
 def p_params(p):
     '''
