@@ -166,9 +166,38 @@ def p_if_statement(p):
 # --- Regla para funciones ---
 def p_function_declaration(p):
     '''
-    function_declaration : FUN ID LPAREN RPAREN LBRACE program RBRACE
+    function_declaration : FUN ID LPAREN params RPAREN LBRACE program RBRACE
+                         | FUN ID LPAREN RPAREN LBRACE program RBRACE
+                         | FUN ID LPAREN params RPAREN COLON type LBRACE program RBRACE
+                         | FUN ID LPAREN RPAREN LBRACE COLON type program RBRACE
     '''
-    p[0] = ('function', p[2], p[6])
+    if len(p) == 9:
+        p[0] = ('function_decl', p[2], p[4], None, p[7])
+    elif len(p) == 10:
+        p[0] = ('function_decl', p[2], [], None, p[7])
+    elif len(p) == 11:
+        p[0] = ('function_decl', p[2], p[4], p[8], p[10])
+    else:
+        p[0] = ('function_decl', p[2], [], p[8], p[10])
+
+def p_params(p):
+    '''
+    params : param COMMA params
+           | param
+           | empty
+    '''
+    if len(p) == 4:
+        p[0] = [p[1]] + p[3]
+    elif len(p) == 2 and p[1] != []:
+        p[0] = [p[1]]
+    else:
+        p[0] = []
+
+def p_param(p):
+    '''
+    param : ID COLON type
+    '''
+    p[0] = ('param', p[1], p[3])
 
 def p_function_call(p):
     '''
@@ -213,7 +242,7 @@ def p_type(p):
     type : TYPE_INT
          | TYPE_STRING
          | TYPE_BOOLEAN
-         | TYPE_DOUBLE
+         | TYPE_FLOAT
          | TYPE_ANY
          | TYPE_UNIT
          | TYPE_LIST
@@ -221,7 +250,10 @@ def p_type(p):
          | TYPE_MAP
          | generic_type
     '''
-    p[0] = p[1]
+    if p[1] in ('Int', 'String', 'Boolean', 'Float', 'Any', 'Unit'):
+        p[0] = ('basic_type', p[1])
+    else:
+        p[0] = p[1]
 
 def p_generic_type(p):
     '''
@@ -229,10 +261,12 @@ def p_generic_type(p):
                  | TYPE_SET LT type GT
                  | TYPE_MAP LT type COMMA type GT
     '''
-    if len(p) == 5:  # Caso: List<T> o Set<T>
-        p[0] = ('generic_type', p[1], [p[3]])
-    else:  # Caso: Map<K, V>
-        p[0] = ('generic_type', p[1], [p[3], p[5]])
+    if p[1] == 'List':
+        p[0] = ('list_type', p[3])
+    elif p[1] == 'Set':
+        p[0] = ('set_type', p[3])
+    else:
+        p[0] = ('map_type', p[3], p[5])
 
 # --- Manejo de errores ---
 def p_error(p):
