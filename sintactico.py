@@ -109,12 +109,43 @@ def p_variable_declaration(p):
 # BRUNO ROMERO
 
 # --- Regla para 'input' ---
+def p_input_statement(p):
+    '''
+    input_statement : ID EQUALS READLINE LPAREN RPAREN
+                    | ID EQUALS READLN LPAREN RPAREN
+                    | ID EQUALS READLN_OR_NULL LPAREN RPAREN
+    '''
+    if p[3] == 'readLine':
+        p[0] = ('input_readline', p[1])
+    elif p[3] == 'readln':
+        p[0] = ('input_readln', p[1])
+    else:
+        p[0] = ('input_readln_or_null', p[1])
 
 # --- Regla para ciclo 'while' ---
+def p_while_statement(p):
+    '''
+    while_statement : WHILE LPAREN expression RPAREN LBRACE program RBRACE
+    '''
+    p[0] = ('while', p[3], p[6])
 
 # --- Regla para clases ---
+def p_class_declaration(p):
+    '''
+    class_declaration : CLASS ID LBRACE program RBRACE
+    '''
+    p[0] = ('class', p[2], p[4])
 
 # --- Regla para 'print' ---
+def p_print_statement(p):
+    '''
+    print_statement : PRINT LPAREN expression RPAREN
+                    | PRINTLN LPAREN expression RPAREN
+    '''
+    if p[1] == 'print':
+        p[0] = ('print', p[3])
+    else:
+        p[0] = ('println', p[3])
 
 # JAREN PAZMIÑO
 
