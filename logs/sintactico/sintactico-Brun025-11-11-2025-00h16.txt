@@ -1,0 +1,8 @@
+Error sintáctico: Token 'package' en la línea 3
+Error sintáctico: Token 'Double' en la línea 7
+Error sintáctico: Token '+=' en la línea 13
+Error sintáctico: Token '/=' en la línea 14
+Error sintáctico: Token '-=' en la línea 20
+Error sintáctico: Token '*=' en la línea 22
+Error sintáctico: Token '$' en la línea 31
+Error sintáctico: Token '}' en la línea 33
