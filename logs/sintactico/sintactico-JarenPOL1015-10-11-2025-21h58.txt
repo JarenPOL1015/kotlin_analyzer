@@ -1,0 +1,5 @@
+Error sintáctico: Token ':' en la línea 5
+Error sintáctico: Token ':' en la línea 7
+Error sintáctico: Token 'println' en la línea 10
+Error sintáctico: Token '}' en la línea 11
+Error sintáctico: Token '?:' en la línea 12

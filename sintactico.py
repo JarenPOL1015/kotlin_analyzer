@@ -46,8 +46,8 @@ def p_statement(p):
                 | variable_declaration
                 | if_statement
                 | function_declaration
+                | assignment
                 | return_statement
-                | assignment_statement
     '''
     p[0] = p[1]
 
@@ -93,13 +93,21 @@ def p_for_statement(p):
     '''
     p[0] = ('for', p[3], p[5], p[8])
 
+def p_statement_return(p):
+    '''
+    return_statement : RETURN expression
+                     | RETURN
+    '''
+    if len(p) == 3:
+        p[0] = ('return', p[2])
+    else:
+        p[0] = ('return', None)
+
 # --- Regla para declaraciones de variables ---
 def p_variable_declaration(p):
     '''
     variable_declaration : VAR ID EQUALS expression
                          | VAL ID EQUALS expression
-                         | VAL ID COLON type EQUALS expression
-                         | VAR ID COLON type EQUALS expression
     '''
     if p[1] == 'var':
         p[0] = ('var_decl', p[2], p[4])
@@ -174,6 +182,21 @@ def p_assignment(p):
     assignment  : ID EQUALS expression
     '''
     p[0] = ('assign', p[1], p[3])
+
+# --- Regla para tipos de datos ---
+def p_type(p):
+    '''
+    type : TYPE_INT
+         | TYPE_STRING
+         | TYPE_BOOLEAN
+         | TYPE_DOUBLE
+         | TYPE_ANY
+         | TYPE_UNIT
+         | TYPE_LIST
+         | TYPE_SET
+         | TYPE_MAP
+    '''
+    p[0] = p[1]
 
 # --- Manejo de errores ---
 def p_error(p):
