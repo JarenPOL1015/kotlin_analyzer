@@ -48,6 +48,10 @@ def p_statement(p):
                 | function_declaration
                 | assignment
                 | return_statement
+                | input_statement
+                | while_statement
+                | class_declaration
+                | print_statement
     '''
     p[0] = p[1]
 
@@ -93,7 +97,7 @@ def p_for_statement(p):
     '''
     p[0] = ('for', p[3], p[5], p[8])
 
-def p_statement_return(p):
+def p_return_statement(p):
     '''
     return_statement : RETURN expression
                      | RETURN
@@ -108,6 +112,8 @@ def p_variable_declaration(p):
     '''
     variable_declaration : VAR ID EQUALS expression
                          | VAL ID EQUALS expression
+                         | VAR ID COLON type EQUALS expression
+                         | VAL ID COLON type EQUALS expression
     '''
     if p[1] == 'var':
         p[0] = ('var_decl', p[2], p[4])
