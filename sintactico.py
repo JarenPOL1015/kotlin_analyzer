@@ -90,7 +90,7 @@ def p_expression(p):
     elif len(p) == 4:
         p[0] = p[2]
     else:
-        p[0] = ('literal', p[1])
+        p[0] = ('expression', p[1])
 
 # --- Regla para ciclo 'for' ---
 def p_for_statement(p):
@@ -117,10 +117,10 @@ def p_variable_declaration(p):
                          | VAR ID COLON type EQUALS expression
                          | VAL ID COLON type EQUALS expression
     '''
-    if p[1] == 'var':
-        p[0] = ('var_decl', p[2], p[4])
+    if len(p) == 5:
+        p[0] = ('var_decl', p[1], p[2], None, p[4])
     else:
-        p[0] = ('val_decl', p[2], p[4])
+        p[0] = ('var_decl', p[1], p[2], p[4], p[6])
 
 # BRUNO ROMERO
 
@@ -228,7 +228,10 @@ def p_type(p):
          | TYPE_MAP
          | generic_type
     '''
-    p[0] = p[1]
+    if p[1] in ('Int', 'String', 'Boolean', 'Double', 'Any', 'Unit'):
+        p[0] = ('basic_type', p[1])
+    else:
+        p[0] = p[1]
 
 def p_generic_type(p):
     '''
@@ -236,10 +239,12 @@ def p_generic_type(p):
                  | TYPE_SET LT type GT
                  | TYPE_MAP LT type COMMA type GT
     '''
-    if len(p) == 5:  # Caso: List<T> o Set<T>
-        p[0] = ('generic_type', p[1], [p[3]])
-    else:  # Caso: Map<K, V>
-        p[0] = ('generic_type', p[1], [p[3], p[5]])
+    if p[1] == 'List':
+        p[0] = ('list_type', p[3])
+    elif p[1] == 'Set':
+        p[0] = ('set_type', p[3])
+    else:
+        p[0] = ('map_type', p[3], p[5])
 
 # --- Manejo de errores ---
 def p_error(p):
