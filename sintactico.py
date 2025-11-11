@@ -52,6 +52,7 @@ def p_statement(p):
                 | while_statement
                 | class_declaration
                 | print_statement
+                | function_call
     '''
     p[0] = p[1]
 
@@ -72,6 +73,7 @@ def p_expression(p):
                 | expression LTE expression
                 | expression AND expression
                 | expression OR expression
+                | expression TO expression
                 | NOT expression
                 | LPAREN expression RPAREN
                 | NUMBER_INT
@@ -182,6 +184,29 @@ def p_function_declaration(p):
     '''
     p[0] = ('function', p[2], p[6])
 
+def p_function_call(p):
+    '''
+    function_call : ID LPAREN args RPAREN
+    '''
+    p[0] = ('function_call', p[1], p[3])
+
+def p_args(p):
+    '''
+    args : arg COMMA args
+         | arg
+    '''
+    if len(p) == 4:
+        p[0] = [p[1]] + p[3]
+    else:
+        p[0] = [p[1]]
+
+def p_arg(p):
+    '''
+    arg : expression
+        | empty
+    '''
+    p[0] = p[1]
+
 # --- Regla para asignaciones ---
 def p_assignment(p):
     '''
@@ -209,5 +234,26 @@ def p_error(p):
     if p:
         print(f"Error sintáctico: Token '{p.value}' en la línea {p.lineno}")
 
+# --- Vacío ---
+def p_empty(p):
+    '''
+    empty :
+    '''
+    p[0] = []
+
 # --- CONSTRUCCIÓN DEL PARSER ---
 parser = yacc.yacc()
+
+while True:
+    try:
+        s = input('kt-parser > ')
+    except EOFError:
+        print("\nSaliendo...")
+        break
+
+    if not s: continue
+    lexer.input(s)
+    result = parser.parse(lexer=lexer)
+
+    if result:
+        print(result)
