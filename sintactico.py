@@ -80,6 +80,7 @@ def p_expression(p):
                 | LITERAL_TRUE
                 | LITERAL_FALSE
                 | ID
+                | mapof_expression
     '''
     if len(p) == 4 and p[2] != '(':
         p[0] = ('binop', p[2], p[1], p[3])
@@ -114,11 +115,71 @@ def p_variable_declaration(p):
                          | VAL ID EQUALS expression
                          | VAR ID COLON type EQUALS expression
                          | VAL ID COLON type EQUALS expression
+                         | VAR ID COLON map_type EQUALS expression
+                         | VAL ID COLON map_type EQUALS expression
+                         | VAR ID COLON type
+                         | VAL ID COLON type
     '''
-    if p[1] == 'var':
-        p[0] = ('var_decl', p[2], p[4])
+    if len(p) == 5 and p[3] == ':':
+        # Declaración sin inicialización
+        if p[1] == 'var':
+            p[0] = ('var_decl_no_init', p[2], p[4])
+        else:
+            p[0] = ('val_decl_no_init', p[2], p[4])
     else:
-        p[0] = ('val_decl', p[2], p[4])
+        # Declaración con inicialización
+        if p[1] == 'var':
+            p[0] = ('var_decl', p[2], p[4] if len(p) == 5 else p[6])
+        else:
+            p[0] = ('val_decl', p[2], p[4] if len(p) == 5 else p[6])
+
+# --- Regla para mapas literales ---
+
+def p_mapof_expression(p):
+    '''
+    mapof_expression : MAPOF LPAREN map_entries RPAREN
+    '''
+    p[0] = ('mapof', p[3])
+
+def p_map_entries(p):
+    '''
+    map_entries : map_entry
+                | map_entries COMMA map_entry
+    '''
+    if len(p) == 2:
+        p[0] = [p[1]]
+    else:
+        p[0] = p[1] + [p[3]]
+
+def p_map_entry(p):
+    '''
+    map_entry : simple_expression TO simple_expression
+    '''
+    p[0] = ('pair', p[1], p[3])
+
+def p_simple_expression(p):
+    '''
+    simple_expression : NUMBER_INT
+                      | NUMBER_FLOAT
+                      | STRING
+                      | LITERAL_TRUE
+                      | LITERAL_FALSE
+                      | ID
+    '''
+    if len(p) == 4:
+        p[0] = p[2]  # Expresión entre paréntesis
+    else:
+        p[0] = ('literal', p[1])
+
+def p_map_type(p):
+    '''
+    map_type : TYPE_MAP LT type COMMA type GT
+             | TYPE_MAP
+    '''
+    if len(p) == 2:
+        p[0] = ('map_type', p[1])
+    else:
+        p[0] = ('map_type', p[1], p[3], p[5])
 
 # BRUNO ROMERO
 
