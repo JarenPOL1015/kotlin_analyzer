@@ -52,7 +52,6 @@ def p_statement(p):
                 | while_statement
                 | class_declaration
                 | print_statement
-                | function_call
     '''
     p[0] = p[1]
 
@@ -82,6 +81,7 @@ def p_expression(p):
                 | LITERAL_TRUE
                 | LITERAL_FALSE
                 | ID
+                | function_call
     '''
     if len(p) == 4 and p[2] != '(':
         p[0] = ('binop', p[2], p[1], p[3])
