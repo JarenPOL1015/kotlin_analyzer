@@ -1,0 +1,5 @@
+Error semántico: Variable 'precio' no declarada.
+Error semántico: Variable 'cantidad' no declarada.
+Error semántico: Tipos incompatibles 'TYPE_ANY' y 'TYPE_ANY' para multiplication
+Error semántico: Símbolo 'total' ya declarado en el ámbito actual
+Error semántico: Símbolo 's' ya declarado en el ámbito actual
