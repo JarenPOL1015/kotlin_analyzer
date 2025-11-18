@@ -19,6 +19,7 @@ reserved = {
     'import': 'IMPORT',
     'to': 'TO',
     'in': 'IN',
+    'as': 'AS',
     # Funciones
     'print': 'PRINT',
     'println': 'PRINTLN',
