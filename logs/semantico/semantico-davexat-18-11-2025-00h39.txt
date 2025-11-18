@@ -1,0 +1,3 @@
+Error semántico: Variable 'x' no declarada.
+Error semántico: Tipos incompatibles 'TYPE_ANY' y 'TYPE_INT' para addition
+Error semántico: Variable 'x' no declarada.
