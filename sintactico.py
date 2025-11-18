@@ -393,6 +393,143 @@ def p_class_declaration(p):
     '''
     p[0] = ('class', p[2], p[4])
 
+# --- Regla para declaraciones de funciones ---
+def p_function_declaration(p):
+    '''
+    function_declaration    : FUN ID LPAREN params RPAREN function_body
+                            | FUN ID LPAREN params RPAREN EQUALS expression
+                            | FUN ID LPAREN params RPAREN COLON type function_body
+                            | FUN ID LPAREN params RPAREN COLON type EQUALS expression
+    '''
+    global _temp_function_params, _temp_function_params_stack, _function_context_stack
+    global _function_depth, _temp_variables  # Añadir las nuevas variables
+    
+    function_name = p[2]
+    params = p[4] if p[4] else []
+
+    _temp_function_params_stack.append(_temp_function_params.copy())
+    
+    if params:
+        for param in params:
+            param_name = param[1]
+            param_type = param[0]
+            _temp_function_params[param_name] = param_type
+
+    # Determinar el tipo de retorno
+    if len(p) >= 8 and p[6] == ':':
+        return_type = p.slice[7].type
+    else:
+        return_type = 'TYPE_UNIT'
+    
+    current_scope = smt.get_current_scope()
+    
+    function_context = {
+        'name': function_name,
+        'params': params, 
+        'return_type': return_type
+    }
+    _function_context_stack.append(function_context)
+    
+    # El depth ya se incrementó en p_param
+    current_depth = _function_depth
+    
+    # Entrar al scope de la función para procesar su cuerpo
+    smt.enter_scope(function_name)
+
+    # Declarar parámetros en el scope de la función
+    param_names = set()
+    for param in params:
+        param_name = param[1]
+        param_type = param[0]
+        
+        # Verificar parámetros duplicados
+        if param_name in param_names:
+            smt.semantic_errors.append(f"Error semántico: Parámetro '{param_name}' ya declarado en la función '{function_name}'.")
+            continue
+        param_names.add(param_name)
+        
+        # Declarar el parámetro como variable
+        success, error_msg = smt.declare_variable(param_name, param_type, is_constant=False)
+        if not success:
+            smt.semantic_errors.append(f"Error semántico: {error_msg}")
+
+    if len(p) == 7:
+        body = p[6]
+        p.slice[0].type = p.slice[6].type
+        p[0] = ('fun_decl', return_type, function_name, params, body)
+    
+    elif len(p) == 8 and p[6] == '=': # FUN ID (params) = expression
+        expr = p[7]
+        if return_type == 'TYPE_UNIT':
+            return_type = p.slice[7].type # Inferir el tipo de retorno
+        
+        if return_type == p.slice[7].type:
+            p.slice[0].type = return_type
+            p[0] = ('fun_decl', return_type, function_name, params, expr)
+        else:
+            smt.semantic_errors.append(f"Error semántico: Incompatibilidad de tipo de retorno. Se esperaba '{return_type}', se obtuvo '{p.slice[7].type}'")
+            p.slice[0].type = return_type
+            p[0] = ('fun_decl', return_type, function_name, params, expr)
+    
+    elif len(p) == 9: # FUN ID (params) : type function_body
+        error_msg = f'Error semántico: Incompatibilidad de tipo de retorno en el cuerpo de la función \'{function_name}\'. Se esperaba \'{return_type}\', se obtuvo \'{p.slice[8].type}\'.'
+
+        body = p[8]
+        if smt.check_type_compatibility(return_type, p.slice[8].type, error_msg):
+            p.slice[0].type = return_type
+            p[0] = ('fun_decl', return_type, function_name, params, body)
+        else:
+            p.slice[0].type = return_type
+            p[0] = ('fun_decl', return_type, function_name, params, body)
+    
+    elif len(p) == 10: # FUN ID (params) : type = expression
+        error_msg = f"Error semántico: Incompatibilidad de tipo de retorno en la función '{function_name}'. Se esperaba '{return_type}', se obtuvo '{p.slice[9].type}'."
+        expr = p[9]
+
+        if smt.check_type_compatibility(return_type, p.slice[9].type, error_msg):
+            p.slice[0].type = p.slice[7].type
+            p[0] = ('fun_decl', p.slice[7].type, function_name, params, expr)
+        else:
+            p.slice[0].type = return_type
+            p[0] = ('fun_decl', return_type, function_name, params, expr)
+
+    if _temp_function_params_stack:
+        _temp_function_params = _temp_function_params_stack.pop()
+    else:
+        _temp_function_params.clear()
+
+    # Mover variables temporales al scope correcto antes de salir
+    if current_depth in _temp_variables:
+        function_scope = smt.get_current_scope()
+        for var_name, var_type in _temp_variables[current_depth].items():
+            if function_scope in smt.scopes:
+                smt.scopes[function_scope]['variables'][var_name] = var_type
+        # Limpiar variables temporales de este depth
+        del _temp_variables[current_depth]
+
+    # Salir del scope de la función
+    smt.exit_scope()
+    
+    if return_type != 'TYPE_UNIT' and 'body' in locals() and body is not None:
+        smt.check_all_paths_return(function_name, return_type, body)
+
+    # Decrementar depth al salir de la función
+    _function_depth -= 1
+    
+    # Declarar la función en el scope actual (después de salir del scope de la función)
+    if _function_context_stack:
+        func_ctx = _function_context_stack.pop()
+        current_scope = smt.get_current_scope()  # Este es el scope donde debe declararse
+        
+        if current_scope in smt.scopes:
+            if func_ctx['name'] in smt.scopes[current_scope]['functions']:
+                smt.semantic_errors.append(f"Error semántico: Función '{func_ctx['name']}' ya declarada en el ámbito actual")
+            else:
+                smt.scopes[current_scope]['functions'][func_ctx['name']] = {
+                    'return_type': func_ctx['return_type'],
+                    'params': func_ctx['params']
+                }
+
 # JAREN PAZMIÑO
 
 # --- Regla para 'if' ---
