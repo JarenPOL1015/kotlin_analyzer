@@ -166,3 +166,63 @@ def semantic_check_binary_numeric(p, op1, op2, operator):
     else:
         semantic_errors.append(f"Error semántico: Tipos incompatibles '{p.slice[1].type}' y '{p.slice[3].type}' para {op_name}")
         p.slice[0].type = 'TYPE_ANY'
+
+# BRUNO ROMERO
+
+def semantic_check_range_operator(p, op1, op2, operator):
+    if operator == '..':
+        if totaly_match(p, make_type_pairings(['TYPE_INT', 'TYPE_LONG'])):
+            p.slice[0].type = f'RANGE'
+            p[0] = ('range', op1, op2)
+        else:
+            semantic_errors.append(f"Error semántico: Tipos incompatibles '{p.slice[1].type}' y '{p.slice[3].type}' para el operador de rango '..'")
+            p.slice[0].type = 'TYPE_ANY'
+
+def semantic_check_binary_boolean(p, op1, op2, operator):
+    dict_logical_ops = {
+        '&&': ('and', 'logical AND'),
+        '||': ('or', 'logical OR'),
+    }
+
+    dict_relacional_ops = {
+        '==': ('eq', 'equality'),
+        '!=': ('neq', 'inequality'),
+        '>': ('gt', 'greater than'),
+        '>=': ('gte', 'greater than or equal to'),
+        '<': ('lt', 'less than'),
+        '<=': ('lte', 'less than or equal to'),
+    }
+
+    if operator in dict_logical_ops:
+        op_func, op_name = dict_logical_ops[operator]
+        if p.slice[1].type == 'TYPE_BOOLEAN' and p.slice[3].type == 'TYPE_BOOLEAN':
+            p.slice[0].type = 'TYPE_BOOLEAN'
+            p[0] = (op_func, op1, op2)
+        else:
+            semantic_errors.append(f"Error semántico: Tipos incompatibles '{p.slice[1].type}' y '{p.slice[3].type}' para {op_name}")
+            p.slice[0].type = 'TYPE_ANY'
+    elif operator in dict_relacional_ops:
+        op_func, op_name = dict_relacional_ops[operator]
+        if op_func == 'eq' or op_func == 'neq':
+            if totaly_match(p, make_type_pairings(numeric_types + ['TYPE_CHAR']) + [('TYPE_BOOLEAN', 'TYPE_BOOLEAN'), ('TYPE_STRING', 'TYPE_STRING')]):
+                p.slice[0].type = 'TYPE_BOOLEAN'
+                p[0] = (op_func, op1, op2)
+            else:
+                semantic_errors.append(f"Error semántico: Tipos incompatibles '{p.slice[1].type}' y '{p.slice[3].type}' para {op_name}")
+                p.slice[0].type = 'TYPE_ANY'
+        else:
+            if totaly_match(p, make_type_pairings(numeric_types + ['TYPE_CHAR'])):
+                p.slice[0].type = 'TYPE_BOOLEAN'
+                p[0] = (op_func, op1, op2)
+            else:
+                semantic_errors.append(f"Error semántico: Tipos incompatibles '{p.slice[1].type}' y '{p.slice[3].type}' para {op_name}")
+                p.slice[0].type = 'TYPE_ANY'
+
+def semantic_check_unary_boolean(p, op, operator):
+    if operator == '!':
+        if p.slice[2].type == 'TYPE_BOOLEAN':
+            p.slice[0].type = 'TYPE_BOOLEAN'
+            p[0] = ('not', op)
+        else:
+            semantic_errors.append(f"Error semántico: Tipo incompatible '{p.slice[2].type}' para el operador lógico NOT")
+            p.slice[0].type = 'TYPE_ANY'
