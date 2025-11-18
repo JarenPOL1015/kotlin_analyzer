@@ -5,6 +5,7 @@ from sintactico import parser, lexer
 
 LOG_LEXICO_DIRECTORY = os.path.join("logs", "lexico")
 LOG_SINTACTICO_DIRECTORY = os.path.join("logs", "sintactico")
+LOG_SEMANTICO_DIRECTORY = os.path.join("logs", "semantico")
 
 def get_git_user():
     result = subprocess.run(['git', 'config', 'user.name'], capture_output=True, text=True)
@@ -52,6 +53,14 @@ def run_parser(kotlin_code):
 
     return syntax_errors
 
+def run_semantic_analysis(kotlin_code):
+    from semantico import semantic_errors
+    semantic_errors.clear()
+
+    parser.parse(kotlin_code, lexer=lexer)
+
+    return semantic_errors
+
 def save_log(log_filename, log_entries):
     """Guarda los tokens en el archivo de log."""
     try:
@@ -64,16 +73,22 @@ def save_log(log_filename, log_entries):
 
 def main():
     kotlin_code = read_test_file()
-    choice = int(input("Ingrese análisis:\n1. Analizador Léxico\n2. Analizador Sintáctico\n3. Todos\n>> "))
-    if choice == 1 or choice == 3:
+    choice = int(input("Ingrese análisis:\n1. Analizador Léxico\n2. Analizador Sintáctico\n3. Analizador Semántico\n4. Todos\n>> "))
+    if choice == 1 or choice == 4:
         # Análisis léxico
         log_filename_lex = get_log_filename("lexico", LOG_LEXICO_DIRECTORY)
         log_entries_lex = run_lexer(kotlin_code)
         save_log(log_filename_lex, log_entries_lex)
-    elif choice == 2 or choice == 3:
+    if choice == 2 or choice == 4:
         # Análisis sintáctico
         log_filename_syn = get_log_filename("sintactico", LOG_SINTACTICO_DIRECTORY)
         log_entries_syn = run_parser(kotlin_code)
         save_log(log_filename_syn, log_entries_syn)
+    if choice == 3 or choice == 4:
+        # Analisis semántico
+        log_filename_sem = get_log_filename("semantico", LOG_SEMANTICO_DIRECTORY)
+        log_entries_sem = run_semantic_analysis(kotlin_code)
+        save_log(log_filename_sem, log_entries_sem)
+
 if __name__ == "__main__":
     main()
