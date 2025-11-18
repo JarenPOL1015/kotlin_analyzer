@@ -244,6 +244,7 @@ def p_block(p):
     p[0] = p[2]
 
 # ----- Regla para Sentencias -----
+
 def p_statements(p):
     '''
     statements   : statements statement
@@ -267,6 +268,7 @@ def p_statement(p):
 
 # --- Regla para declaraciones de variables ---
 def p_variable_declaration(p):
+    # QUE VAL ID COLON type NO FUNCIONA
     '''
     variable_declaration    : VAR ID COLON type EQUALS expression
                             | VAL ID COLON type EQUALS expression
@@ -369,29 +371,7 @@ def p_dynamic_type(p):
         p.slice[0].type = 'TYPE_ANY'
     p[0] = p[1]
 
-# FALTA T_T
-# --- Regla para ciclo 'for' ---
-def p_for_statement(p):
-    '''
-    for_statement   : FOR LPAREN ID IN expression RPAREN LBRACE program RBRACE
-    '''
-    p[0] = ('for', p[3], p[5], p[8])
-
 # BRUNO ROMERO
-
-# --- Regla para ciclo 'while' ---
-def p_while_statement(p):
-    '''
-    while_statement : WHILE LPAREN expression RPAREN LBRACE program RBRACE
-    '''
-    p[0] = ('while', p[3], p[6])
-
-# --- Regla para clases ---
-def p_class_declaration(p):
-    '''
-    class_declaration : CLASS ID LBRACE program RBRACE
-    '''
-    p[0] = ('class', p[2], p[4])
 
 # --- Regla para declaraciones de funciones ---
 def p_function_declaration(p):
@@ -543,106 +523,257 @@ def p_if_statement(p):
     else:
         p[0] = ('if', p[3], p[6])
 
-
-# --- Regla para funciones ---
-def p_function_declaration(p):
+# --- Regla para el cuerpo de funciones ---
+def p_function_body(p):
     '''
-    function_declaration : FUN ID LPAREN params RPAREN LBRACE program RBRACE
-                         | FUN ID LPAREN params RPAREN COLON type LBRACE program RBRACE
+    function_body   : LBRACE statements return_statement RBRACE
+                    | LBRACE empty return_statement RBRACE
     '''
-    if len(p) == 9:
-        p[0] = ('function_decl', p[2], p[4], None, p[7])
-    else:
-        p[0] = ('function_decl', p[2], p[4], p[7], p[9])
+    # Extraer información de la función desde el contexto del parser
+    # Necesitamos acceder a la información de la función padre
     
+    p.slice[0].type = p.slice[3].type
+    p[0] = (p[2], p[3])
 
+# NO TOCAR
 def p_params(p):
     '''
-    params : param COMMA params
-           | param
-           | empty
-    '''
-    if len(p) == 4:
-        p[0] = [p[1]] + p[3]
-    elif len(p) == 2 and p[1] != []:
-        p[0] = [p[1]]
-    else:
-        p[0] = []
-
-def p_param(p):
-    '''
-    param : ID COLON type
-    '''
-    p[0] = ('param', p[1], p[3])
-
-def p_function_call(p):
-    '''
-    function_call : ID LPAREN args RPAREN
-                  | READLINE LPAREN args RPAREN
-                  | READLN LPAREN args RPAREN
-                  | READLN_OR_NULL LPAREN args RPAREN
-                  | PRINT LPAREN args RPAREN
-                  | PRINTLN LPAREN args RPAREN
-    '''
-    p[0] = ('function_call', p[1], p[3])
-
-def p_args(p):
-    '''
-    args : args COMMA arg
-         | arg
+    params  : params COMMA param
+            | param
+            | empty
     '''
     if len(p) == 4:
         p[0] = p[1] + [p[3]]
-    elif len(p) == 2 and p[1] is not None:
-        p[0] = [p[1]]
+    elif len(p) == 2:
+        if p[1] == []:
+            p[0] = None
+        else:
+            p[0] = [p[1]]
+
+def p_param(p):
+    '''
+    param   : ID COLON type
+            | ID COLON type EQUALS expression
+    '''
+    global _temp_function_params, _function_depth
+    
+    # Incrementar depth cuando procesamos el primer parámetro de una función
+    # Esto indica que estamos entrando al contexto de una función
+    _function_depth += 1
+    
+    param_name = p[1]
+    param_type = p.slice[3].type
+
+    # WORKAROUND: Registrar inmediatamente el parámetro cuando se procesa
+    _temp_function_params[param_name] = param_type
+
+    # Verificar que el tipo sea válido
+    if not smt.check_type(p, 3):
+        smt.semantic_errors.append(f"Error semántico: Tipo inválido '{p.slice[3].type}' para el parámetro '{param_name}'.")
+        # Usamos TYPE_ANY pero seguimos procesando el parámetro
+        param_type = 'TYPE_ANY'
+        p.slice[3].type = 'TYPE_ANY'
+        _temp_function_params[param_name] = 'TYPE_ANY'
+
+    if len(p) == 6:  # Parámetro con valor por defecto
+        default_value = p[5]
+        error_msg = f"Error semántico: Incompatibilidad de tipos en el valor por defecto del parámetro '{param_name}'. Se esperaba '{param_type}', se obtuvo '{p.slice[5].type}'."
+        
+        if smt.check_type_compatibility(param_type, p.slice[5].type, error_msg):
+            p.slice[0].type = param_type
+            p[0] = (param_type, param_name, default_value)
+        else:
+            p.slice[0].type = param_type
+            p[0] = (param_type, param_name, None)
+    else:  # Parámetro sin valor por defecto
+        p.slice[0].type = param_type
+        p[0] = (param_type, param_name, None)
+
+            
+def p_return_statement(p):
+    '''
+    return_statement    : RETURN expression
+                        | RETURN
+                        | empty
+    '''
+    if len(p) == 3:
+        p.slice[0].type = p.slice[2].type
+        p[0] = ('return', p.slice[2].type, p[2])
     else:
-        p[0] = []
+        p.slice[0].type = 'TYPE_UNIT'
+        p[0] = ('return', 'TYPE_UNIT', None)
 
-def p_arg(p):
-    '''
-    arg : expression
-        | empty
-    '''
-    p[0] = p[1]
 
-# --- Regla para asignaciones ---
-def p_assignment_expression(p):
+# --- Regla para expresiones ---
+def p_expression(p):
     '''
-    assignment_expression : ID EQUALS expression
+    expression  : expression PLUS expression
+                | expression MINUS expression
+                | expression TIMES expression
+                | expression DIVIDE expression
+                | expression MODULO expression
+                | expression RANGE expression
+                | expression EQ expression
+                | expression NEQ expression
+                | expression GT expression
+                | expression GTE expression
+                | expression LT expression
+                | expression LTE expression
+                | expression AND expression
+                | expression OR expression
+                | NOT expression
+                | LPAREN expression RPAREN
+                | assignment_expression
     '''
-    p[0] = ('assign', p[1], p[3])
-
-# --- Regla para tipos de datos ---
-def p_type(p):
-    '''
-    type : TYPE_INT
-         | TYPE_STRING
-         | TYPE_BOOLEAN
-         | TYPE_FLOAT
-         | TYPE_ANY
-         | TYPE_UNIT
-         | TYPE_LIST
-         | TYPE_SET
-         | TYPE_MAP
-         | generic_type
-    '''
-    if p[1] in ('Int', 'String', 'Boolean', 'Float', 'Any', 'Unit'):
-        p[0] = ('basic_type', p[1])
-    else:
+                # | function_call
+    if len(p) == 4:
+        if p[2] in arithmetic_bin_ops:
+            smt.semantic_check_binary_numeric(p, p[1], p[3], p[2])
+        elif p[2] in relational_bin_ops + logical_bin_ops:
+            smt.semantic_check_binary_boolean(p, p[1], p[3], p[2])
+        elif p[2] == '..':
+            smt.semantic_check_range_operator(p, p[1], p[3], p[2])
+        elif p[1] == '(' and p[3] == ')':
+            p.slice[0].type = p.slice[2].type
+            p[0] = p[2]
+    elif len(p) == 3:
+        if p[1] == '!':
+            smt.semantic_check_unary_boolean(p, p[2], p[1])
+    elif len(p) == 2:
+        # Para assignment_expression, simplemente pasar el resultado
+        p.slice[0].type = p.slice[1].type
         p[0] = p[1]
 
-def p_generic_type(p):
+def p_expression_number_int(p):
+    'expression : NUMBER_INT'
+    p[0] = p[1]
+    p.slice[0].type = 'TYPE_INT'
+
+def p_expression_number_long(p):
+    'expression : NUMBER_LONG'
+    p[0] = p[1]
+    p.slice[0].type = 'TYPE_LONG'
+
+def p_expression_number_float(p):
+    'expression : NUMBER_FLOAT'
+    p[0] = p[1]
+    p.slice[0].type = 'TYPE_FLOAT'
+
+def p_expression_number_double(p):
+    'expression : NUMBER_DOUBLE'
+    p[0] = p[1]
+    p.slice[0].type = 'TYPE_DOUBLE'
+
+def p_expression_string(p):
+    'expression : STRING'
+    p[0] = p[1]
+    p.slice[0].type = 'TYPE_STRING'
+
+def p_expression_char(p):
+    'expression : CHAR'
+    p[0] = p[1]
+    p.slice[0].type = 'TYPE_CHAR'
+
+def p_expression_literal_boolean(p):
     '''
-    generic_type : TYPE_LIST LT type GT
-                 | TYPE_SET LT type GT
-                 | TYPE_MAP LT type COMMA type GT
+    expression : LITERAL_TRUE
+               | LITERAL_FALSE
     '''
-    if p[1] == 'List':
-        p[0] = ('list_type', p[3])
-    elif p[1] == 'Set':
-        p[0] = ('set_type', p[3])
+    if p[1] == 'true':
+        p[0] = True
     else:
-        p[0] = ('map_type', p[3], p[5])
+        p[0] = False
+    p.slice[0].type = 'TYPE_BOOLEAN'
+
+def p_expression_id(p):
+    '''
+    expression : ID
+    '''
+    global _temp_function_params
+    
+    var_name = p[1]
+    
+    # WORKAROUND: Primero verificar si es un parámetro temporal
+    if var_name in _temp_function_params:
+        temp_type = _temp_function_params[var_name]
+        p.slice[0].type = temp_type
+        p[0] = var_name
+        return
+    
+    # Buscar en variables
+    var_type, found_scope = smt.find_symbol(var_name, 'variables')
+    if var_type:
+        p.slice[0].type = var_type
+        p[0] = var_name
+        return
+
+    # Buscar en constantes
+    const_type, found_scope = smt.find_symbol(var_name, 'constants')
+    if const_type:
+        p.slice[0].type = const_type
+        p[0] = var_name
+        return
+    smt.semantic_errors.append(f"Error semántico: Variable '{var_name}' no declarada.")
+    p.slice[0].type = 'TYPE_ANY'
+    p[0] = var_name
+
+
+def p_expression_cast(p):
+    '''
+    expression : expression AS type
+    '''
+    from_type = p.slice[1].type
+    to_type = p.slice[3].type
+    p.slice[0].type = to_type
+    p[0] = ('cast', p[1], to_type)
+    if not smt.check_explicit_cast(from_type, to_type):
+        smt.semantic_errors.append(f"Error semántico: Casting explícito inválido de '{from_type}' a '{to_type}'")
+
+def p_expression_assignment(p):
+    '''
+    assignment_expression   : ID EQUALS expression
+    '''
+    global _temp_function_params
+    
+    var_name = p[1]
+    
+    if var_name in _temp_function_params:
+        temp_type = _temp_function_params[var_name]
+        error_msg = f"Error semántico: Incompatibilidad de tipos en la asignación a la variable '{var_name}'. Se esperaba '{temp_type}', se obtuvo '{p.slice[3].type}'."
+        if smt.check_type_compatibility(temp_type, p.slice[3].type, error_msg):
+            p.slice[0].type = temp_type
+            p[0] = ('assign', var_name, p[3])
+        else:
+            p.slice[0].type = 'TYPE_ANY'
+            p[0] = ('assign', var_name, p[3])
+        return
+    
+    # Buscar la variable en el scope chain
+    var_type, found_scope = smt.find_symbol(var_name, 'variables')
+    const_type, const_scope = smt.find_symbol(var_name, 'constants')
+    
+    # Verificar si la variable existe
+    if not var_type and not const_type:
+        smt.semantic_errors.append(f"Error semántico: Variable '{var_name}' no declarada.")
+        p.slice[0].type = 'TYPE_ANY'
+        p[0] = ('assign', var_name, p[3])
+        return
+    
+    # Verificar si es una constante
+    if const_type:
+        smt.semantic_errors.append(f"Error semántico: No se puede asignar a la variable constante '{var_name}'.")
+        p.slice[0].type = 'TYPE_ANY'
+        p[0] = ('assign', var_name, p[3])
+        return
+    
+    # Verificar compatibilidad de tipos
+    error_msg = f"Error semántico: Incompatibilidad de tipos en la asignación a la variable '{var_name}'. Se esperaba '{var_type}', se obtuvo '{p.slice[3].type}'."
+    if smt.check_type_compatibility(var_type, p.slice[3].type, error_msg):
+        p.slice[0].type = var_type
+        p[0] = ('assign', var_name, p[3])
+    else:
+        p.slice[0].type = 'TYPE_ANY'
+        p[0] = ('assign', var_name, p[3])
 
 # --- Manejo de errores ---
 def p_error(p):
@@ -660,6 +791,7 @@ def p_empty(p):
 parser = yacc.yacc()
 
 if __name__ == "__main__":
+    last_length = len(smt.semantic_errors)
     while True:
         try:
             s = input('kt-parser > ')
@@ -673,3 +805,8 @@ if __name__ == "__main__":
 
         if result:
             print(result)
+        
+        # Imprimir nuevos errores semánticos
+        if len(smt.semantic_errors) > last_length:
+            print("\n".join(smt.semantic_errors[last_length:]))
+            last_length = len(smt.semantic_errors)

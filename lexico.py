@@ -32,6 +32,8 @@ reserved = {
     'String': 'TYPE_STRING',
     'Boolean': 'TYPE_BOOLEAN',
     'Float': 'TYPE_FLOAT',
+    'Double': 'TYPE_DOUBLE',
+    'Long': 'TYPE_LONG',
     'Any': 'TYPE_ANY',
     'Unit': 'TYPE_UNIT',
     #Booleanos
@@ -76,7 +78,9 @@ tokens = [
     'NOT',  # !
     # Números y Literales
     'NUMBER_INT',  # Entero
+    'NUMBER_LONG',  # Largo
     'NUMBER_FLOAT',  # Decimal
+    'NUMBER_DOUBLE',  # Doble precisión
     'NUMBER_HEX',  # Hexadecimal
     'NUMBER_BIN',  # Binario
     'CHAR',  # Carácter
@@ -167,10 +171,29 @@ def t_NUMBER_FLOAT(t):
     t.value = float(s)
     return t
 
+# Token para números de doble precisión
+# Double con posibles underscores y sufijo d/D
+def t_NUMBER_DOUBLE(t):
+    r'-?\d+(_?\d)*\.\d+(_?\d)*([eE][+-]?\d+(_?\d)*)?[dD]?'
+    s = t.value.replace('_','')
+    if s[-1] in 'dD':
+        s = s[:-1]
+    t.value = float(s)
+    return t
+
 # Token para enteros
-# Int con underscores y sufijo L
+# Int con underscores
 def t_NUMBER_INT(t):
-    r'-?\d+(_?\d)*[lL]?'
+    r'-?\d+(_?\d)*'
+    s = t.value.replace('_','')
+    if s[-1] in 'lL':
+        s = s[:-1]
+    t.value = int(s)
+    return t
+
+# Token para números largos
+def t_NUMBER_LONG(t):
+    r'-?\d+(_?\d)*[lL]'
     s = t.value.replace('_','')
     if s[-1] in 'lL':
         s = s[:-1]

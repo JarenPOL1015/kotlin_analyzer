@@ -1,0 +1,21 @@
+Error semántico: Variable 'radio' no declarada.
+Error semántico: Tipos incompatibles 'TYPE_FLOAT' y 'TYPE_ANY' para multiplication
+Error semántico: Variable 'radio' no declarada.
+Error semántico: Tipos incompatibles 'TYPE_ANY' y 'TYPE_ANY' para multiplication
+Error semántico: Variable 'nombre' no declarada.
+Error semántico: Variable 'resultado' no declarada.
+Error semántico: Tipos incompatibles 'TYPE_ANY' y 'TYPE_FLOAT' para addition
+Error semántico: Tipos incompatibles 'TYPE_ANY' y 'TYPE_FLOAT' para division
+Error semántico: Variable 'contador' no declarada.
+Error semántico: Variable 'contador' no declarada.
+Error semántico: Tipos incompatibles 'TYPE_ANY' y 'TYPE_INT' para addition
+Error semántico: Variable 'contador' no declarada.
+Error semántico: Variable 'i' no declarada.
+Error semántico: Tipos incompatibles 'TYPE_ANY' y 'TYPE_INT' para addition
+Error semántico: Variable 'i' no declarada.
+Error semántico: Variable 'pi' no declarada.
+Error semántico: Incompatibilidad de tipos en la declaración de la variable 'miNumero'. Se esperaba 'TYPE_INT', se obtuvo 'TYPE_STRING'.
+Error semántico: Incompatibilidad de tipos en la declaración de la variable 'miNumero'. Se esperaba 'TYPE_INT', se obtuvo 'TYPE_STRING'.
+Error semántico: Variable 'total' no declarada.
+Error semántico: Tipos incompatibles 'TYPE_ANY' y 'TYPE_INT' para addition
+Error semántico: Tipos incompatibles 'TYPE_BOOLEAN' y 'TYPE_INT' para addition
