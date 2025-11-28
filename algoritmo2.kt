@@ -1,40 +1,50 @@
 // David Sandoval
 
-// Clase que representa un contador de números pares
-class Contador {
+fun contadorDePares(): Unit {
     var totalPares = 0
 
     fun contarHasta(n: Int) {
-        // Iteramos del 1 al número dado usando un for con rango
         for (i in 1..n) {
-            // Si el número es par
             if (i % 2 == 0) {
                 totalPares = totalPares + 1
-                println(i)  // Imprime el número par
+                println(i)
             }
         }
     }
 }
 
-// Programa principal
+val d = 0
+
 fun main() {
-    // Creamos una instancia de la clase
-    val c = Contador()
+    contadorDePares()
 
-    // Leemos un número desde input
-    var limite = readLine()
-
-    // Convertimos el input a entero si no es nulo
-    if (limite != null) {
-        // Simple casting simulado con expression
-        var n = limite.toInt()  // Consideramos que `toInt()` se ignora en el parser
-        c.contarHasta(n)
+    fun hola(c: Int, d: Int, e: Int): Int {
+        if (c > d) {
+            return c
+        } else {
+            if (d > e) {
+                return d
+            } else {
+                return e
+            }
+        }
     }
 
-    // Bucle while para mostrar mensaje repetido
+    var limite = readLine()
+
+    if (limite != null) {
+        var n = limite
+    }
+    
     var x = 0
     while (x < 3) {
         println("Repetición: " + x)
         x = x + 1
+    
+        var mapa = mapOf(1, 2, 3, 4)
+
+        for (i in mapa){
+            println(i)
+        }
     }
 }
