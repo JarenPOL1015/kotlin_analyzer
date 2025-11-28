@@ -220,6 +220,165 @@ def treat_type(type_str):
         add_semantic_error(f"Error semántico: Tipo desconocido '{type_str}'.")
         return 'UNKNOWN'
 
+# JAREN PAZMIÑO
+
+def treat_if_statement(statement):
+    '''
+    Procesa un statement if y retorna información sobre returns.
+
+    Parámetros:
+    - statement: una tupla que representa un statement if en el AST.
+        Ejemplos:
+        - ('if_statement', condicion, cuerpo_if, cuerpo_else)
+
+    Retorna:
+    - Lista de tuplas [(tipo_retorno, es_terminal)...] si hay retornos.
+    '''
+    condition = statement[1]
+    cuerpo_if = statement[2]
+    cuerpo_else = statement[3]
+
+    condition_type = treat_expression(condition)
+    if condition_type != 'TYPE_BOOLEAN':
+        add_semantic_error(f"Error semántico: La condición del 'if' debe ser de tipo 'TYPE_BOOLEAN', no '{condition_type}'.")
+    
+    # Crear scope para el if
+    if_scope_name = create_scope('if')
+
+    returns_if = []
+    if cuerpo_if:
+        for stmt in cuerpo_if:
+            ret = treat_statement(stmt)
+            if ret:
+                returns_if.extend(ret)
+    else:
+        add_semantic_error(f"Error semántico: El bloque 'if' debe contener al menos una sentencia.")
+
+    # Limpiar scope del if
+    delete_scope(if_scope_name)
+
+    # Procesar else/else-if
+    returns_elif = []
+    returns_else = []
+    if cuerpo_else: # ('else_part', cuerpo) o ('else_if', statement)
+        if cuerpo_else[0] == 'else_if':
+            # Es un else if anidado
+            ret = treat_statement(cuerpo_else[1])
+            if ret:
+                returns_elif.extend(ret)
+        elif cuerpo_else[0] == 'else_part':
+            # Es un else normal
+            # Un else es terminal cuando tiene returns terminales
+            else_scope_name = create_scope('else')
+                
+            for stmt in cuerpo_else[1]:
+                ret = treat_statement(stmt)
+                if ret:
+                    returns_else.extend(ret)
+                
+            delete_scope(else_scope_name)
+    
+    # Todos los retornos en if y elif no son terminales, ya que pueden no ejecutarse
+    returns_if = [(ret_type, False) for ret_type, _ in returns_if]
+    returns_elif = [(ret_type, False) for ret_type, _ in returns_elif]
+
+    all_returns = []
+
+    all_returns.extend(returns_if)
+    all_returns.extend(returns_elif)
+    all_returns.extend(returns_else)
+    
+    return all_returns if all_returns else None
+
+def treat_statement(statement):
+    '''
+    Analiza una sentencia del AST y retorna su tipo o acción semántica.
+
+    Parámetros:
+    - statement: una tupla que representa una sentencia en el AST.
+        Ejemplos:
+        - ('return', valores)
+        - ('if_statement', condition, cuerpo_if, cuerpo_else)
+
+    Retorna:
+    - Lista de tuplas [(tipo_retorno, es_terminal)...] si hay retorno.
+    - None si no hay retornos.
+    '''
+    kind = statement[0]
+    
+    if kind == 'return':
+        if not is_in_function():
+            add_semantic_error(f"Error semántico: Statement 'return' fuera de una función.")
+            return None
+        
+        ret_type = treat_return(statement)
+        return [(ret_type, True)]
+    
+    elif kind == 'assign':
+        treat_assignment(statement)
+        return None
+    
+    elif kind == 'var_decl' or kind == 'val_decl':
+        treat_variable_declaration(statement)
+        return None
+    
+    elif kind == 'fun_decl':
+        treat_function_declaration(statement)
+        return None
+    
+    # FALTA: VALIDAR QUE LAS ENTRADAS DE FUNCIONES SEAN CORRECTAS
+    elif kind == 'function_call':
+        treat_function_call(statement)
+        return None
+    
+    elif kind == 'print' or kind == 'println':
+        treat_print_statement(statement)
+        return None
+    
+    elif kind == 'readLine':
+        treat_readline_statement(statement)
+        return None
+    
+    elif kind == 'if_statement':
+        return treat_if_statement(statement)
+    
+    elif kind == 'for_statement':
+        return treat_for_statement(statement)
+    
+    elif kind == 'while_statement':
+        return treat_while_statement(statement)
+
+    return None
+
+def process_block_returns(statements, func_name=None):
+    '''
+    Procesa una lista de statements y detecta returns y código inalcanzable.
+
+    Parámetros:
+    - statements: lista de sentencias en el bloque.
+    - func_name: nombre de la función actual (opcional, para mensajes de error).
+    
+    Retorna:
+    - Lista de tuplas [(tipo_retorno, es_terminal), ...]
+    '''
+    returns = []
+    terminal_found_at = None
+
+    for idx, statement in enumerate(statements):
+        if terminal_found_at is not None:
+            if func_name:
+                add_semantic_error(f"Error semántico: Código inalcanzable después de return terminal en la función '{func_name}'.")
+            break
+
+        return_info = treat_statement(statement)
+        if return_info:
+            for ret_type, is_terminal in return_info:
+                returns.append((ret_type, is_terminal))
+                if is_terminal:
+                    terminal_found_at = idx
+    
+    return returns
+
 # DAVID SANDOVAL
 
 def treat_function_declaration(func_tuple):
@@ -287,6 +446,21 @@ def treat_function_declaration(func_tuple):
 
     # Limpiar scope de la función
     scope_stack.pop()
+
+# JAREN PAZMIÑO
+
+def check_explicit_cast(from_type, to_type):
+    """Verifica si un casting explícito desde from_type a to_type es válido."""
+    if from_type in primivites_types or to_type in primivites_types:
+        add_semantic_error(f'Error semántico: El casting explícito solo es válido entre objetos')
+        return False
+    elif from_type == 'UNKNOWN' or to_type == 'UNKNOWN':
+        return False
+    elif from_type == to_type:
+        return True
+    elif from_type == 'TYPE_ANY' or to_type == 'TYPE_ANY':
+        return True
+    return False
 
 # DAVID SANDOVAL
 

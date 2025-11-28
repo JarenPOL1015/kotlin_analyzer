@@ -150,6 +150,166 @@ def p_assignment_expression(p):
     # RETORNA: ('assign', nombre_variable, operador, expresion, lineno)
     p[0] = ('assign', p[1], p[2], p[3], p.lineno(1))
 
+# JAREN PAZMIÑO
+
+# --- Regla para declaraciones de variables ---
+
+def p_variable_declaration(p):
+    '''
+    variable_declaration    : VAR ID COLON type EQUALS expression
+                            | VAR BACKTICK_ID COLON type EQUALS expression
+                            | VAL ID COLON type EQUALS expression
+                            | VAL BACKTICK_ID COLON type EQUALS expression
+                            | VAR ID COLON type
+                            | VAR BACKTICK_ID COLON type
+                            | VAL ID COLON type
+                            | VAL BACKTICK_ID COLON type
+                            | VAR ID EQUALS expression
+                            | VAR BACKTICK_ID EQUALS expression
+                            | VAL ID EQUALS expression
+                            | VAL BACKTICK_ID EQUALS expression
+    '''
+    # RETORNA: (tipo_declaracion, tipo_variable, nombre_variable, expresion)
+    decl_type = 'var_decl' if p[1] == 'var' else 'val_decl'
+    var_name = p[2]
+    var_type = None
+    expr = None
+    lineno = p.lineno(1)
+
+    if len(p) == 7:
+        var_type = p[4]
+        expr = p[6]
+    elif len(p) == 5:
+        if p[3] == ':':
+            var_type = p[4]
+        else:
+            expr = p[4]
+    
+    p[0] = (decl_type, var_type, var_name, expr, lineno)
+
+# --- Regla para tipos de datos ---
+def p_type(p):
+    '''
+    type    : TYPE_INT
+            | TYPE_LONG
+            | TYPE_FLOAT
+            | TYPE_DOUBLE
+            | TYPE_STRING
+            | TYPE_BOOLEAN
+            | TYPE_ANY
+            | TYPE_UNIT
+            | TYPE_LIST
+            | TYPE_SET
+            | TYPE_MAP
+            | dynamic_type
+    '''
+    # RETORNA: tipo (Ej: 'Int', 'Boolean', 'Hola')
+    p[0] = p[1]
+
+def p_dynamic_type(p):
+    '''
+    dynamic_type    : ID
+    '''
+    # RETORNA: tipo dinámico como ID
+    p[0] = p[1]
+
+# --- Regla para declaraciones de funciones ---
+
+def p_function_declaration(p):
+    '''
+    function_declaration    : FUN ID LPAREN params RPAREN block
+                            | FUN BACKTICK_ID LPAREN params RPAREN block
+                            | FUN ID LPAREN params RPAREN EQUALS expression
+                            | FUN BACKTICK_ID LPAREN params RPAREN EQUALS expression
+                            | FUN ID LPAREN params RPAREN COLON type block
+                            | FUN BACKTICK_ID LPAREN params RPAREN COLON type block
+                            | FUN ID LPAREN params RPAREN COLON type EQUALS expression
+                            | FUN BACKTICK_ID LPAREN params RPAREN COLON type EQUALS expression
+    '''
+    # RETORNA: ('fun_decl', nombre_funcion, parametros, tipo_retorno, cuerpo)
+    func_name = p[2]
+    params = p[4]
+    return_type = None
+    body = p[len(p)-1]
+    lineno = p.lineno(1)
+
+    if len(p) >= 9:
+        return_type = p[7]
+
+    p[0] = ('fun_decl', func_name, params, return_type, body, lineno)
+
+def p_return_statement(p):
+    '''
+    return_statement    : RETURN expression
+                        | RETURN
+    '''
+    # RETORNA: ('return', valores, lineno)
+    if len(p) == 3:
+        return_type = p[2]
+        p[0] = ('return', return_type, p.lineno(1))
+    elif len(p) == 2:
+        p[0] = ('return', None, p.lineno(1))
+
+def p_params(p):
+    '''
+    params  : params COMMA param
+            | param
+            | empty
+    '''
+    # RETORNA: lista de parámetros
+    if len(p) == 4:
+        p[0] = p[1] + [p[3]]
+    elif len(p) == 2:
+        if p[1] is None:
+            p[0] = []
+        else:
+            p[0] = [p[1]]
+
+def p_param(p):
+    '''
+    param   : ID COLON type
+            | ID COLON type EQUALS expression
+            | BACKTICK_ID COLON type
+            | BACKTICK_ID COLON type EQUALS expression
+    '''
+    # RETORNA: (nombre_parametro, tipo_parametro, valor_por_defecto)
+    param_name = p[1]
+    param_type = p[3]
+    if len(p) == 6:
+        default_value = p[5]
+        p[0] = (param_name, param_type, default_value)
+    else:
+        p[0] = (param_name, param_type, None)
+
+# JAREN PAZMIÑO
+
+# --- Regla para sentencias if ---
+
+def p_if_statement(p):
+    '''
+    if_statement : IF LPAREN expression RPAREN block else_part
+    '''
+    # RETORNA: ('if_statement', condicion, cuerpo_if, cuerpo_else)
+    condition = p[3]
+    if_body = p[5]
+    else_body = p[6]
+    p[0] = ('if_statement', condition, if_body, else_body)
+
+def p_else_part(p):
+    '''
+    else_part : ELSE if_statement
+              | ELSE block
+              | empty
+    '''
+    # RETORNA: ('else_part', cuerpo) o None si no hay else
+    if len(p) == 3:
+        if isinstance(p[2], tuple) and p[2][0] == 'if_statement':
+            p[0] = ('else_if', p[2])
+        else:
+            p[0] = ('else_part', p[2])
+    else:
+        p[0] = None
+
 # DAVID SANDOVAL
 
 # --- Regla para sentencias while ---
@@ -162,59 +322,19 @@ def p_while_statement(p):
     body = p[5]
     p[0] = ('while_statement', condition, body)
 
-# --- Manejo de errores ---
-def p_error(p):
-    if p:
-        sintactic_errors.append(f"Error sintáctico: Token '{p.value}' en la línea {p.lineno}")
-        parser.errok()
-    else:
-        sintactic_errors.append(f"Error sintáctico: Fin de archivo inesperado")
+# JAREN PAZMIÑO
 
-# --- Vacío ---
-def p_empty(p):
+# --- Regla para funciones de impresión y lectura ---
+def p_print_statement(p):
     '''
-    empty :
+    print_statement : PRINT LPAREN arguments RPAREN
+                    | PRINTLN LPAREN arguments RPAREN
+                    | READLINE LPAREN arguments RPAREN
     '''
-    p[0] = None
-
-# --- CONSTRUCCIÓN DEL PARSER ---
-parser = yacc.yacc(debug=True)
-
-def build_parse_tree(code, lexer):
-    global sintactic_errors
-    sintactic_errors = []
-    lexer.lineno = 1
-    lexer.input(code)
-
-    try:
-        result = parser.parse(lexer=lexer)
-    except Exception as e:
-        sintactic_errors.append(f"Error crítico durante el parsing: {str(e)}")
-        result = None
-    
-    if result is None and not sintactic_errors:
-        sintactic_errors.append("Error sintáctico: El código no pudo ser parseado correctamente")
-    
-    return result
-
-
-if __name__ == "__main__":
-    last_length = len(smt.semantic_errors)
-    while True:
-        try:
-            s = input('kt-parser > ')
-        except EOFError:
-            print("\nSaliendo...")
-            break
-
-        if not s: continue
-        lexer.input(s)
-        result = parser.parse(lexer=lexer)
-
-        if result:
-            print(result)
-        
-        # Imprimir nuevos errores semánticos
-        if len(smt.semantic_errors) > last_length:
-            print("\n".join(smt.semantic_errors[last_length:]))
-            last_length = len(smt.semantic_errors)
+    # RETORNA: ('print', argumentos) o ('println', argumentos) o ('readLine', argumentos)
+    if p[1] == 'print':
+        p[0] = ('print', p[3])
+    elif p[1] == 'println':
+        p[0] = ('println', p[3])
+    elif p[1] == 'readLine':
+        p[0] = ('readLine', p[3])
