@@ -13,19 +13,15 @@ reserved = {
     'return': 'RETURN',
     'while': 'WHILE',
     'for': 'FOR',
-    'class': 'CLASS',
-    'interface': 'INTERFACE',
     'package': 'PACKAGE',
     'import': 'IMPORT',
-    'to': 'TO',
     'in': 'IN',
     'as': 'AS',
+    'null': 'LITERAL_NULL',
     # Funciones
     'print': 'PRINT',
     'println': 'PRINTLN',
     'readLine': 'READLINE',
-    'readln': 'READLN',
-    'readlnOrNull': 'READLN_OR_NULL',
     # Tipos de datos comunes (aunque en Kotlin son clases,
     # a nivel léxico se pueden tratar como palabras clave)
     'Int': 'TYPE_INT',
@@ -59,19 +55,8 @@ tokens = [
     'NEQ',  # !=
     'GTE',  # >=
     'LTE',  # <=
-    # Operadores especiales de Kotlin
-    'SAFE_CALL',  # ?. (Operador de llamada segura)
-    'ELVIS',  # ?: (Operador Elvis)
-    'INC',  # ++
-    'DEC',  # --
-    # Otros
-    'ELLIPSIS',  # ...
+    # Rango
     'RANGE',  # ..
-    'ARROW',  # ->
-    'DOUBLE_COLON',  # ::
-    'NOT_NULL_ASSERT',  # !!
-    'DOLLAR',  # $
-    'AT',  # @
     # Lógicos
     'AND',  # &&
     'OR',  # ||
@@ -81,13 +66,11 @@ tokens = [
     'NUMBER_LONG',  # Largo
     'NUMBER_FLOAT',  # Decimal
     'NUMBER_DOUBLE',  # Doble precisión
-    'NUMBER_HEX',  # Hexadecimal
-    'NUMBER_BIN',  # Binario
     'CHAR',  # Carácter
     'STRING',  # String
-    'TRIPLE_STRING',  # String de triple comilla
     # Identificadores
     'ID',
+    'BACKTICK_ID',  # `variable`
     # Operadores simples
     'PLUS',  # +
     'MINUS',  # -
@@ -123,23 +106,13 @@ t_NEQ = r'!='
 t_GTE = r'>='
 t_LTE = r'<='
 
-t_SAFE_CALL = r'\?\.'
-t_ELVIS = r'\?:'
-t_INC = r'\+\+'
-t_DEC = r'--'
-
-# Otros tokens especiales
-t_ELLIPSIS = r'\.\.\.'
 t_RANGE = r'\.\.'
-t_ARROW = r'->'
-t_DOUBLE_COLON = r'::'
-t_NOT_NULL_ASSERT = r'!!'
-t_DOLLAR = r'\$'
-t_AT = r'@'
 
 # Tokens para operadores lógicos
 t_AND = r'&&'
 t_OR = r'\|\|'
+
+# Operadores de un carácter
 t_NOT = r'!'
 
 # Tokens para operadores simples
@@ -182,15 +155,6 @@ def t_NUMBER_DOUBLE(t):
     return t
 
 # Token para enteros
-# Int con underscores
-def t_NUMBER_INT(t):
-    r'-?\d+(_?\d)*'
-    s = t.value.replace('_','')
-    if s[-1] in 'lL':
-        s = s[:-1]
-    t.value = int(s)
-    return t
-
 # Token para números largos
 def t_NUMBER_LONG(t):
     r'-?\d+(_?\d)*[lL]'
@@ -200,25 +164,11 @@ def t_NUMBER_LONG(t):
     t.value = int(s)
     return t
 
-# Token para números hexadecimales
-# Hexadecimal (0xFF) — admite guiones bajos como en Kotlin: 0xFF_AA
-def t_NUMBER_HEX(t):
-    r'0[xX][0-9a-fA-F](_?[0-9a-fA-F])*[lL]?'
-    # quitar underscores y posible sufijo L
+# Int con underscores
+def t_NUMBER_INT(t):
+    r'-?\d+(_?\d)*'
     s = t.value.replace('_','')
-    if s[-1] in 'lL':
-        s = s[:-1]
-    t.value = int(s, 16)
-    return t
-
-# Token para números binarios
-# Binario 0b1010
-def t_NUMBER_BIN(t):
-    r'0[bB][01](_?[01])*[lL]?'
-    s = t.value.replace('_','')
-    if s[-1] in 'lL':
-        s = s[:-1]
-    t.value = int(s, 2)
+    t.value = int(s)
     return t
 
 # Token para caracteres
@@ -233,9 +183,10 @@ def t_STRING(t):
     t.value = t.value[1:-1]  # Remover las comillas
     return t
 
-def t_TRIPLE_STRING(t):
-    r'"""([\s\S]*?)"""'
-    t.value = t.value[3:-3]  # Remover las comillas triples
+# Token para identificadores con backticks
+def t_BACKTICK_ID(t):
+    r'`[^`]+`'
+    t.value = t.value[1:-1]  # Remover los backticks
     return t
 
 # BRUNO ROMERO
@@ -250,8 +201,8 @@ def t_ID(t):
 
 # --- 4. Reglas de Ignorar y Errores ---
 
-# Ignorar espacios en blanco, tabulaciones
-t_ignore = ' \t'
+# Ignorar espacios en blanco, tabulaciones y retornos de carro
+t_ignore = ' \t\r'
 
 
 # Ignorar comentarios de una línea
@@ -273,14 +224,15 @@ def t_newline(t):
 
 
 # Manejo de errores léxicos
+lexical_errors = []
+
 def t_error(t):
     error_msg = f"Error léxico: Caracter ilegal '{t.value[0]}' en la línea {t.lineno}"
-    print(error_msg)
-
-    if hasattr(t.lexer, 'log_entries'):
-        t.lexer.log_entries.append(error_msg)
-
+    lexical_errors.append(error_msg)
     t.lexer.skip(1)
 
 # --- 5. Construcción del Lexer ---
+
+all_tokens = []
 lexer = lex()
+    

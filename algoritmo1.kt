@@ -1,94 +1,34 @@
 // Jaren Pazmiño
 
-fun sumar(a: Int, b: Int): Int {
-    return a + b
-}
-
-fun multiplicar(a: Int, b: Int) = a * b
-
-/* ERROR SEMÁNTICO (si se llama): Tipo de retorno incorrecto. */
-fun getNombre(id: Int): String {
-    if (id == 1) {
-        return "Admin"
-    } else {
-        // ERROR: La función debe retornar 'String', pero se encontró 'Int'.
-        return 99
-    }
-}
-
-/* ERROR SEMÁNTICO (si se llama): Ausencia de retorno. */
-fun calcularArea(radio: Double): Double {
-    val area = 3.1415 * radio * radio
-    // ERROR: La función 'calcularArea' debe retornar un valor.
-}
-
-
-// --- Programa Principal ---
-
 fun main() {
+    // Prueba de Listas y Sets
+    val numeros = listOf(1, 2, 3, 4, 5)
+    val unicos = setOf(1, 1, 2, 3)
     
-    println("Iniciando prueba mixta...")
+    println(numeros)
+    println(unicos)
 
-    // Declaraciones válidas
-    val pi: Double = 3.1415
-    var contador = 10
-    var nombre: String
-    nombre = "Juan"
+    // Prueba de Tipos Genéricos (Declaración)
+    val nombres: List = listOf("Ana", "Luis")
     
-    // Expresiones aritméticas y booleanas válidas
-    val resultado = 5 + 10 * 2 // 25
-    val promedio = (resultado + 5.0) / 2.0 // 15.0
-    val esMayor = contador >= 10 // true
+    // Prueba de Mapas
+    val edades = mapOf("Ana", "Luis")
     
-    // Estructuras de control válidas
-    if (esMayor && nombre == "Juan") {
-        println("Bloque 'if' válido.")
-        contador = contador + 1
-    } else {
-        println("Bloque 'else' válido.")
+    // Prueba de 'if' con operadores
+    if (1 + 1 == 2) {
+        println(edades)
     }
 
-    // Bucle válido
-    var i = 0
-    while (i < 2) {
-        println("Bucle 'while' válido, i=$i")
-        i = i + 1
-    }
-    
-    // Estructuras de datos válidas
-    val numeros = listOf(1, 2, 3)
-    val edades = mapOf("Ana" to 20)
-    
-    // Llamada a función válida
-    val suma = sumar(contador, 5)
-    println("Suma válida: $suma")
-    
-    
-    // --- 2. SECCIÓN INVÁLIDA (Debe fallar el análisis semántico) ---
-    
-    println("... Probando errores semánticos ...")
+    // Prueba de colecciones vacías
+    val listaVacia = mutableListOf()
+    val mapaVacio = mapOf()
 
-    /* ERROR SEMÁNTICO: Modificación de constante. */
-    pi = 3.14     
-    
-    /* ERROR SEMÁNTICO: Asignación de tipo incompatible. */
-    val miNumero: Int = "Esto es un string"
-    
+    val a: Float = 1.toFloat()
+    val b: Int = 1.5.toInt()
+    val c: String = 5.toString()
+    val e: Int = "123".toInt()
 
-    /* ERROR SEMÁNTICO: Uso antes de la declaración. */
-    val y = total + 5
-    
-    
-    /* ERROR SEMÁNTICO: Declaración duplicada. */
-    val nombre = "Pedro" 
-    
-
-    /* ERROR SEMÁNTICO: Condición no booleana. */
-    if (contador) { 
-        println("Esto no debería compilar")
-    }
-
-    /* ERROR SEMÁNTICO: Operador '+' no se puede aplicar a 'Boolean' y 'Int'. */
-     val opInvalida = true + 5
-
+    // Return path tests
+    fun good(): Int { return 42 }
+    fun bad(): Int { val x: Int = 1 return x}
 }
