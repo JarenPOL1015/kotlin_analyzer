@@ -513,10 +513,10 @@ def p_error(p):
     else:
         sintactic_errors.append(f"Error sintáctico: Fin de archivo inesperado")
 
-# --- Vacío ---
-def p_empty(p):
+# --- Regla para sentencias while ---
+def p_while_statement(p):
     '''
-    empty :
+    while_statement : WHILE LPAREN expression RPAREN block
     '''
     p[0] = None
 
@@ -541,23 +541,17 @@ def build_parse_tree(code, lexer):
     return result
 
 
-if __name__ == "__main__":
-    last_length = len(smt.semantic_errors)
-    while True:
-        try:
-            s = input('kt-parser > ')
-        except EOFError:
-            print("\nSaliendo...")
-            break
-
-        if not s: continue
-        lexer.input(s)
-        result = parser.parse(lexer=lexer)
-
-        if result:
-            print(result)
-        
-        # Imprimir nuevos errores semánticos
-        if len(smt.semantic_errors) > last_length:
-            print("\n".join(smt.semantic_errors[last_length:]))
-            last_length = len(smt.semantic_errors)
+# --- Regla para funciones de impresión y lectura ---
+def p_print_statement(p):
+    '''
+    print_statement : PRINT LPAREN arguments RPAREN
+                    | PRINTLN LPAREN arguments RPAREN
+                    | READLINE LPAREN arguments RPAREN
+    '''
+    # RETORNA: ('print', argumentos) o ('println', argumentos) o ('readLine', argumentos)
+    if p[1] == 'print':
+        p[0] = ('print', p[3])
+    elif p[1] == 'println':
+        p[0] = ('println', p[3])
+    elif p[1] == 'readLine':
+        p[0] = ('readLine', p[3])
